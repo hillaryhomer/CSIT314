@@ -5,3 +5,10 @@ dist/
 .env.*
 !.env.example
 .DS_Store
+data/
+test-results/
+playwright-report/
+.test-data/
+.venv/
+__pycache__/
+*.pyc

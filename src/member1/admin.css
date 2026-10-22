@@ -1,0 +1,10 @@
+.admin-error{padding:15px;border:1px solid #d4a799;background:#fff4ee;border-radius:5px;color:#873c30;font-size:12px;margin-bottom:15px}
+.admin-error p{margin-bottom:8px;overflow-wrap:anywhere}.admin-error p:last-child{margin-bottom:0}
+.admin-field-error{display:block;color:#a13e30;font-size:12px;margin-top:5px}
+.admin-form-fields{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:20px;min-width:0}
+.admin-form-fields .field>label{display:block;margin-bottom:7px}
+.admin-form-fields .field input[aria-invalid=true],.admin-form-fields .field select[aria-invalid=true]{border-color:#a13e30}
+.admin-permissions{border:1px solid var(--border);border-radius:5px;padding:12px 15px;display:flex;flex-direction:column;gap:10px;font-size:12px;min-width:0}
+.admin-permissions legend{font-weight:650;padding:0 5px}.admin-permissions b{color:#a94539}
+.admin-permissions label{display:flex;align-items:center;gap:9px}.admin-permissions input{accent-color:var(--brown)}
+.admin-record-id{max-width:130px;overflow-wrap:anywhere}.console-content>.search-row>.search-row{flex:1;margin:0}

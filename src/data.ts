@@ -1,4 +1,4 @@
-// Read-only display fixtures. No account, permission, persistence or report engine.
+// Navigation and other members' preview fixtures. Member 1 records live in SQLite.
 export type Role = 'admin' | 'designer' | 'customer' | 'manager';
 export type ScreenLink = {label:string;path:string;icon:string};
 export const roles:Record<Role,{label:string;name:string;home:string;nav:ScreenLink[]}>={
@@ -8,13 +8,6 @@ export const roles:Record<Role,{label:string;name:string;home:string;nav:ScreenL
  manager:{label:'Platform Manager',name:'Priya Raman',home:'/manager',nav:[{label:'Overview',path:'/manager',icon:'dashboard'},{label:'IDP Categories',path:'/manager/categories',icon:'categories'},{label:'Reports',path:'/manager/reports',icon:'analytics'}]}
 };
 export type RecordRow=Record<string,string>;
-export const profiles:RecordRow[]=[
- {id:'UP001',name:'Interior Designer',role:'Interior Designer',permissions:'Project Management',status:'Active'},
- {id:'UP002',name:'Customer',role:'Customer',permissions:'Standard Access',status:'Active'},
- {id:'UP003',name:'Platform Manager',role:'Platform Manager',permissions:'Administrative Access',status:'Suspended'},
- {id:'UP004',name:'User Admin',role:'User Admin',permissions:'User Management',status:'Active'}
-];
-export const accounts:RecordRow[]=[{id:'UA001',username:'designer01',email:'designer01@example.com',profile:'Interior Designer',status:'Active'},{id:'UA002',username:'customer01',email:'customer01@example.com',profile:'Customer',status:'Active'},{id:'UA003',username:'manager01',email:'manager01@example.com',profile:'Platform Manager',status:'Active'}];
 export const categories:RecordRow[]=[{id:'CAT001',name:'Residential',description:'Homes and apartments',count:'4'},{id:'CAT002',name:'Commercial',description:'Offices and retail',count:'0'},{id:'CAT003',name:'Hospitality',description:'Cafés, restaurants and boutique hotels',count:'0'}];
 export const company:RecordRow={name:'Studio Kanso Architects',address:'12 Rokeby Road, Subiaco WA 6008',contact:'hello@studiokanso.com.au',description:'Residential interior design studio specialising in calm, material-led Japandi homes.'};
 export type Project={id:string;title:string;category:string;style:string;studio:string;city:string;status:'Current'|'Past';image:string;description:string;views:number;shortlists:number;room:string};
@@ -25,5 +18,5 @@ export const projects:Project[]=[
  {id:'P004',title:'Mt Lawley Apartment',category:'Residential',style:'Mid-Century Restored',studio:'Studio Kanso Architects',city:'Mt Lawley, Perth',status:'Past',image:'/images/interior-2.jpg',description:'A restored apartment with walnut joinery, terrazzo and restrained modern finishes.',views:86,shortlists:9,room:'Living Spaces'}
 ];
 export const storyCoverage=[
- ['01–05','/admin/profiles','Create, view, update, suspend and search profiles'],['06–10','/admin/accounts','Create, view, update, suspend and search accounts'],['11–12, 18–19, 35–36, 47–48','/login; /logout','Shared login and logout screen previews'],['13–17','/designer/company','Create, view, update, delete and search company information'],['20–24','/designer/current','Current project CRUD and search layouts'],['25–29','/designer/past','Past project CRUD and search layouts'],['30–32','/','Discover, project details and save-to-favourites layouts'],['33–34','/favourites','Favourite list and keyword search layouts'],['37–38','/designer/analytics','Project view and shortlist display'],['39–43','/manager/categories','Category CRUD and search layouts'],['44–46','/manager/reports','Daily, weekly and monthly report preview layouts']
+ ['01–05','/admin/profiles','Persistent create, view, update, suspend and name search'],['06–08','/admin/accounts','Persistent create, view and update accounts'],['09–10','/admin/accounts','Account suspension and search: Member 2 pending'],['11–12, 18–19, 35–36, 47–48','/login; /logout','Shared login and logout screen previews'],['13–17','/designer/company','Create, view, update, delete and search company information'],['20–24','/designer/current','Current project CRUD and search layouts'],['25–29','/designer/past','Past project CRUD and search layouts'],['30–32','/','Discover, project details and save-to-favourites layouts'],['33–34','/favourites','Favourite list and keyword search layouts'],['37–38','/designer/analytics','Project view and shortlist display'],['39–43','/manager/categories','Category CRUD and search layouts'],['44–46','/manager/reports','Daily, weekly and monthly report preview layouts']
 ];
