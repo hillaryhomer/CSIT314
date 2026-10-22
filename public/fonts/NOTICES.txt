@@ -1,0 +1,7 @@
+Copyright 2019 The Manrope Project Authors (https://github.com/sharanda/manrope)
+
+http://scripts.sil.org/OFL
+
+Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
+
+https://scripts.sil.org/OFL
