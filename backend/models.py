@@ -1,4 +1,4 @@
-"""Entity: data profil, akun, dan kesalahan yang ditampilkan ke pengguna."""
+"""Entities: profile and account data, and errors shown to users."""
 
 from dataclasses import dataclass
 
@@ -27,7 +27,7 @@ class UserProfile:
     status: str = "Active"
 
     def to_dict(self) -> dict:
-        # Nama key tetap sama supaya frontend yang ada tidak perlu ditulis ulang.
+        # Keep the key names unchanged so the existing frontend requires no rewrite.
         return {
             "profileId": self.profile_id, "name": self.name, "role": self.role,
             "permissions": self.permissions, "status": self.status,
@@ -44,7 +44,7 @@ class UserAccount:
     status: str = "Active"
 
     def to_dict(self, profile: UserProfile) -> dict:
-        # Password dan hash sengaja tidak dimasukkan ke respons API.
+        # Intentionally exclude passwords and password hashes from API responses.
         return {
             "accountId": self.account_id, "username": self.username,
             "email": self.email, "profileId": self.profile_id,

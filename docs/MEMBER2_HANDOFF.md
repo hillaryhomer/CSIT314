@@ -1,48 +1,48 @@
-﻿# Handoff ke Member 2
+﻿# Handoff to Member 2
 
-Gunakan backend Python dan database **data/member1.sqlite** yang sama. Jangan membuat penyimpanan akun kedua.
+Use the shared Python backend and **data/member1.sqlite** database. Do not create a second account store.
 
-## Model dan repository
+## Model and Repository
 
-`backend/models.py` berisi UserProfile dan UserAccount. Atribut Python menggunakan snake_case; JSON untuk React tetap camelCase.
+`backend/models.py` contains UserProfile and UserAccount. Python attributes use snake_case; React JSON uses camelCase.
 
-- Profil: profile_id, name, role, permissions (list), status.
-- Akun: account_id, username, email, password_hash, profile_id, status.
-- ID stabil: UP-UUID dan UA-UUID. Akun merujuk ID profil, bukan nama profil.
-- `account.to_dict(profile)` menghasilkan data publik tanpa password/hash.
+- Profile: profile_id, name, role, permissions (list), status.
+- Account: account_id, username, email, password_hash, profile_id, status.
+- Stable IDs: UP-UUID and UA-UUID. Accounts refer to profile IDs, not profile names.
+- `account.to_dict(profile)` returns public data without passwords or hashes.
 
-`Repository` di `backend/database.py` menyediakan find_profile, profile_with_name, search_profiles, create_profile, update_profile, find_account, account_with_username, account_with_email, list_accounts, create_account dan update_account. Gunakan `with repository.transaction():` untuk perubahan terkait. update_account hanya mengubah username/email/profile_id; tidak mengubah hash atau status.
+`Repository` in `backend/database.py` provides find_profile, profile_with_name, search_profiles, create_profile, update_profile, find_account, account_with_username, account_with_email, list_accounts, create_account, and update_account. Use `with repository.transaction():` for related changes. update_account changes only username, email, and profile_id; it does not change the password hash or status.
 
-Nama profil/username/email dibandingkan dengan normalisasi NFKC, trim, lalu lowercase. Email disimpan lowercase. Pencarian profil berupa substring nama, tanpa wildcard. Username: 3-40 huruf ASCII/angka/titik/underscore/hyphen.
+Profile names, usernames, and email addresses are compared after NFKC normalization, trimming, and lowercase conversion. Email is stored lowercase. Profile search is an unbounded name substring search with no wildcards. Usernames allow 3-40 ASCII letters, digits, dots, underscores, or hyphens.
 
-## Password dan login
+## Passwords and Login
 
-`backend/validation.py` menyediakan `hash_password(password)` dan `verify_password(password, password_hash)`. Format tetap bcrypt **$2b$, cost 12**, kompatibel dengan akun dari backend sebelumnya. Password minimal 12 karakter, maksimal 72 byte UTF-8, tidak boleh hanya whitespace. Password tidak di-trim atau dinormalisasi sebelum hashing.
+`backend/validation.py` provides `hash_password(password)` and `verify_password(password, password_hash)`. The format remains bcrypt **$2b$, cost 12**, compatible with accounts from the previous backend. Passwords must contain at least 12 characters, at most 72 UTF-8 bytes, and cannot be whitespace-only. Passwords are not trimmed or normalized before hashing.
 
-Member 2 mengganti `AuthenticatedContext.resolve(request)` di `backend/app.py` untuk mengembalikan account_id dari sesi terverifikasi atau None. Pasang instance-nya melalui `create_app(database_path, auth_context=...)`. Jangan percaya ID/role/permission dari body, query, header buatan browser, atau role selector.
+Member 2 must replace `AuthenticatedContext.resolve(request)` in `backend/app.py` to return an account ID from a verified session or None. Install it through `create_app(database_path, auth_context=...)`. Never trust an ID, role, or permission from the request body, query, browser headers, or role selector.
 
-Setelah verifikasi password dan pada setiap request terlindungi, panggil:
+After password verification and for every protected request, call:
 
 ```python
 from backend.controllers import effective_access
 account, profile = effective_access(repository, account_id)
 ```
 
-Akun dan profil harus Active. **Akun yang profilnya Suspended tidak boleh mengakses fungsi terlindungi; status akun sendiri tidak berubah.** Pemeriksaan membaca database terbaru, sehingga perubahan profil/permission berlaku pada request berikutnya. Tidak ada klaim bahwa sesi dicabut: sesi/login/logout tetap pekerjaan Member 2.
+Both the account and profile must be Active. **An account whose profile is Suspended cannot access protected functions; the account status itself does not change.** Checks read the latest database state, so profile or permission changes apply on the next request. This implementation does not revoke existing sessions; session login/logout remains Member 2 work.
 
-Controller Member 1 membutuhkan role admin serta permission profiles:read/write atau accounts:read/write sesuai operasi. Form akun juga membutuhkan profiles:read untuk pilihan penugasan.
+Member 1 controllers require the admin role and profile or account read/write permissions according to the operation. Account forms also require profiles:read permission for profile assignment options.
 
-## Aturan yang perlu dijaga
+## Rules to Preserve
 
-- Update profil mempertahankan ID/status/relasi akun. Suspend tidak menghapus profil.
-- Update akun mempertahankan ID/password hash/status. Penugasan baru harus ke profil aktif.
-- Akun boleh tetap pada profil suspended saat username/email diubah, tanpa reaktivasi otomatis.
-- Admin tidak boleh suspend profilnya sendiri, melepas role/permission admin sendiri, atau memindahkan akunnya ke profil yang menghilangkan aksesnya.
-- DevelopmentContext hanya untuk development; default AuthenticatedContext menolak akses.
-- Member 2 bertanggung jawab atas sesi, cookie, expiry, logout/invalidation, dan perlindungan CSRF sesi. API saat ini mewajibkan JSON dan menolak Origin yang tidak sesuai APP_ORIGIN.
+- Profile updates preserve the ID, status, and account relationships. Suspension does not delete a profile.
+- Account updates preserve the ID, password hash, and status. New assignments must target an active profile.
+- Accounts can remain assigned to a suspended profile when username or email is changed, without automatic reactivation.
+- Administrators cannot suspend their own profile, remove their own admin role or permissions, or move their account to a profile that removes their access.
+- DevelopmentContext is development-only; the default AuthenticatedContext rejects access.
+- Member 2 owns sessions, cookies, expiry, logout/invalidation, and session CSRF protection. APIs require JSON and reject origins that do not match APP_ORIGIN.
 
-## Respons error
+## Error Response
 
-Format: `{error: {code, message, fields}}`. VALIDATION=400, UNAUTHENTICATED=401, FORBIDDEN=403, NOT_FOUND=404, DUPLICATE/ALREADY_SUSPENDED=409, PERSISTENCE=500. Detail SQL tidak dikirim ke browser.
+Format: `{error: {code, message, fields}}`. VALIDATION=400, UNAUTHENTICATED=401, FORBIDDEN=403, NOT_FOUND=404, DUPLICATE/ALREADY_SUSPENDED=409, PERSISTENCE=500. SQL details are not sent to the browser.
 
-Integrasi login/sesi asli belum diuji karena implementasi Member 2 belum ada. Tes Member 1 memeriksa repository, bcrypt dan effective_access, termasuk penolakan profil suspended.
+The real login/session integration has not been tested because Member 2's implementation is not yet present. Member 1 tests cover the repository, bcrypt, and effective_access, including rejection of suspended profiles.

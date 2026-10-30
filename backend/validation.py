@@ -1,4 +1,4 @@
-"""Validasi input bersama. Aturan bisnis tetap berada di controller."""
+"""Shared input validation. Business rules remain in the controllers."""
 
 import re
 import unicodedata

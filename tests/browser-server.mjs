@@ -1,4 +1,4 @@
-// Jalankan backend Python dengan database khusus tes, bukan database pengguna.
+// Run the Python backend with a dedicated test database, not the user database.
 import { mkdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -6,7 +6,7 @@ import { spawn, spawnSync } from 'node:child_process';
 
 mkdirSync('.test-data', { recursive: true });
 const python = process.env.PYTHON || 'python';
-// runpy juga mendukung interpreter Python embedded yang memakai import path terisolasi.
+// runpy also supports the embedded Python interpreter with an isolated import path.
 const entry = "import runpy,sys;sys.path.insert(0,'.');sys.argv=['backend.app',*sys.argv[1:]];runpy.run_module('backend.app',run_name='__main__')";
 const env = {
   ...process.env, APP_ENV: 'development',

@@ -1,28 +1,28 @@
 ﻿# CSIT314 - Member 1
 
-Backend menggunakan **Python + Flask + SQLite**. Frontend React yang sudah ada tetap dipakai agar tampilan tidak berubah. Cakupan: **US01-US08**, yaitu kelola profil dan buat/lihat/ubah akun.
+The backend uses **Python + Flask + SQLite**. The existing React frontend remains in place so the visual presentation is unchanged. Scope: **US01-US08**, covering profile management and user-account creation, viewing, and updates.
 
-## Struktur sederhana
+## Structure
 
 ```text
 backend/
-  app.py          menerima request HTTP (Boundary)
-  controllers.py  delapan controller user story (Control)
-  models.py       UserProfile dan UserAccount (Entity)
-  database.py     baca/tulis SQLite (Repository)
-  validation.py   validasi input dan hashing password
-  schema.sql      tabel database
-src/member1/      layar React dan pemanggilan API
-tests/            tes Python dan tes browser
+  app.py          receives HTTP requests (Boundary)
+  controllers.py  eight user-story controllers (Control)
+  models.py       UserProfile and UserAccount (Entity)
+  database.py     reads and writes SQLite data (Repository)
+  validation.py   validates input and hashes passwords
+  schema.sql      database tables
+src/member1/      React screens and API calls
+tests/            Python and browser tests
 ```
 
-Alurnya: **Form React -> API Flask -> Controller -> Repository -> SQLite**.
+Data flow: **React Form -> Flask API -> Controller -> Repository -> SQLite**.
 
-Backend berisi lima file Python utama dengan komentar bahasa Indonesia.
+The backend contains five main Python files and English comments.
 
-## Instalasi
+## Installation
 
-Butuh **Python 3.11+** dan **Node.js 22.12+**. Jalankan dari folder proyek:
+Requires **Python 3.11+** and **Node.js 22.12+**. Run from the project folder:
 
 ```powershell
 python -m venv .venv
@@ -31,9 +31,9 @@ npm.cmd ci
 .venv\Scripts\python.exe -m backend.app --dev --seed
 ```
 
-Perintah seed membuat tabel dan data contoh development. Cukup sekali; tidak mereset data yang sudah ada. Database tersimpan di `data/member1.sqlite`. Skema, ID dan hash bcrypt lama tetap kompatibel.
+The seed command creates the tables and development sample data once. It does not reset existing data. The database is stored in `data/member1.sqlite`. The schema, IDs, and existing bcrypt hashes remain compatible.
 
-## Menjalankan
+## Running
 
 Terminal 1 - backend:
 
@@ -47,11 +47,11 @@ Terminal 2 - frontend:
 npm.cmd run dev
 ```
 
-Buka http://127.0.0.1:5173/admin/profiles atau http://127.0.0.1:5173/admin/accounts.
+Open http://127.0.0.1:5173/admin/profiles or http://127.0.0.1:5173/admin/accounts.
 
-Frontend meneruskan request `/api` ke Flask di port 3001. Data tetap tersimpan setelah refresh/restart. Pilihan role pada header hanya untuk berpindah tampilan.
+The frontend forwards `/api` requests to Flask on port 3001. Data remains after refreshes and restarts. The role selector in the header changes the preview screen only.
 
-## Pengujian
+## Testing
 
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
@@ -61,12 +61,12 @@ $env:PYTHON = (Resolve-Path '.venv\Scripts\python.exe').Path
 npm.cmd run test:e2e
 ```
 
-`PYTHON` pada perintah terakhir memilih interpreter untuk tes browser. Tes browser memakai database terpisah, bukan data pengguna. [Checklist dan hasil tes](docs/MEMBER1.md).
+`PYTHON` selects the interpreter used by the browser tests. Browser tests use a separate database, not the application data. See the [Member 1 checklist and results](docs/MEMBER1.md).
 
-Jika `python --version` tidak berjalan, instal Python standar atau pilih interpreter yang sudah tersedia. Pada komputer sesi ini, pengujian menggunakan Python 3.13.12 bawaan pgAdmin; alias `python` di PATH belum berfungsi. Interpreter embedded itu tidak memiliki modul venv, jadi langkah venv di atas memerlukan instalasi Python standar.
+If `python --version` does not work, install standard Python or choose an available interpreter. Browser testing uses Python 3.13.12 through the environment that provides pgAdmin. The embedded interpreter does not include the `venv` module, so the standard `venv` instructions above require a standard Python installation.
 
-## Batas pekerjaan
+## Scope Boundaries
 
-Login/logout, pencarian akun dan suspend akun tetap milik Member 2. Mode `--dev` memakai identitas admin dari server untuk demonstrasi, bukan login asli. Tanpa `--dev`, API menolak akses sampai Member 2 memasang pemeriksaan sesi. Mode development ditolak jika APP_ENV (atau NODE_ENV) ditetapkan production.
+Login/logout, account search, and account suspension remain Member 2 responsibilities. Development mode uses a server-side administrator identity for demonstration and is not real login. Without `--dev`, APIs reject access until Member 2 installs session checks. Development mode is rejected when `APP_ENV` or `NODE_ENV` is production.
 
-[Kontrak Member 2](docs/MEMBER2_HANDOFF.md) menjelaskan penggunaan repository, hash password, dan pemeriksaan akses bersama. Halaman anggota lain tetap berupa preview seperti sebelumnya.
+The [Member 2 handoff](docs/MEMBER2_HANDOFF.md) explains repository usage, password hashes, and shared access checks. Other member pages remain previews.

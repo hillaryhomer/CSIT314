@@ -1,4 +1,4 @@
-"""Tes dengan unittest bawaan Python. Tidak perlu pytest atau mock server."""
+"""Tests using Python's built-in unittest. No pytest or mock server is required."""
 
 from pathlib import Path
 import sqlite3
@@ -225,7 +225,7 @@ class Member1Tests(unittest.TestCase):
     def test_database_reopen_keeps_records_and_hashes(self):
         profile = self.create_profile()
         account = self.create_account(profile["profileId"])
-        # Buat ulang aplikasi, seperti proses backend yang dimulai ulang.
+        # Recreate the application as if the backend process restarted.
         restarted = create_app(self.filename, DevelopmentContext("development", "admin")).test_client()
         self.assertEqual(restarted.get(f"/api/profiles/{profile['profileId']}").get_json(), profile)
         self.assertEqual(restarted.get(f"/api/accounts/{account['accountId']}").get_json(), account)

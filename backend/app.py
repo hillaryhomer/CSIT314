@@ -1,4 +1,4 @@
-"""Boundary: menerima HTTP, memanggil controller, lalu mengirim JSON."""
+"""Boundary: accept HTTP requests, call controllers, and return JSON."""
 
 import argparse
 import os
@@ -21,7 +21,7 @@ from backend.validation import hash_password
 
 
 class AuthenticatedContext:
-    """Member 2 mengganti resolve() dengan pemeriksaan sesi login yang asli."""
+    """Member 2 replaces resolve() with a real login-session check."""
 
     def resolve(self, incoming_request: Request) -> str | None:
         return None
@@ -34,7 +34,7 @@ class DevelopmentContext(AuthenticatedContext):
         self.account_id = account_id
 
     def resolve(self, incoming_request: Request) -> str:
-        # Tidak mengambil identitas/role dari body, header, atau pilihan role UI.
+        # Do not take identity or role from the body, headers, or UI role selector.
         return self.account_id
 
 
@@ -155,7 +155,7 @@ def create_app(database_path: str = "data/member1.sqlite",
 
     @app.post("/api/profiles/<profile_id>/suspend")
     def suspend_profile(profile_id):
-        request.get_json()  # Tetap tolak JSON rusak; identitas tidak dibaca dari body.
+        request.get_json()  # Still reject malformed JSON; identity is not read from the body.
         return jsonify(SuspendUserProfileController(repository(), g.actor_id).execute(profile_id))
 
     @app.get("/api/accounts")
@@ -197,9 +197,9 @@ def create_app(database_path: str = "data/member1.sqlite",
 
 def main():
     parser = argparse.ArgumentParser(description="Backend Python Member 1")
-    parser.add_argument("--dev", action="store_true", help="Gunakan identitas admin development")
+    parser.add_argument("--dev", action="store_true", help="Use the development administrator identity")
     parser.add_argument("--init", action="store_true", help="Buat tabel database")
-    parser.add_argument("--seed", action="store_true", help="Tambahkan data contoh development")
+    parser.add_argument("--seed", action="store_true", help="Add development sample data")
     parser.add_argument("--serve-ui", action="store_true", help="Sajikan hasil build React")
     args = parser.parse_args()
     environment = os.getenv("APP_ENV", os.getenv("NODE_ENV", "development" if args.dev else "production"))

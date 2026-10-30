@@ -1,4 +1,4 @@
-"""Repository: semua SQL ada di sini, bukan di React atau controller."""
+"""Repository: all SQL stays here, not in React or the controllers."""
 
 from contextlib import contextmanager
 import json
@@ -121,7 +121,7 @@ class Repository:
         )
 
     def update_account(self, account: UserAccount) -> None:
-        # US08 tidak boleh mengubah password hash atau status akun.
+        # US08 must not change the password hash or account status.
         self.connection.execute(
             "UPDATE user_accounts SET username=?, username_key=?, email=?, email_key=?, profile_id=? WHERE account_id=?",
             (account.username, normalize(account.username), account.email,

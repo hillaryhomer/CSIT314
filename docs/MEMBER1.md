@@ -1,43 +1,41 @@
-﻿# Checklist Member 1
+﻿# Member 1 Checklist
 
-Semua controller berada di **backend/controllers.py**. Boundary API berada di backend/app.py, entity di backend/models.py, dan SQL/repository di backend/database.py. Layar React tetap di src/member1/AdminManagement.tsx.
+All controllers are in **backend/controllers.py**. The API boundary is in backend/app.py, entities are in backend/models.py, and SQL/repository code is in backend/database.py. React screens remain in src/member1/AdminManagement.tsx.
 
 | Story | Controller | Endpoint |
 | --- | --- | --- |
-| US01 Create profil | CreateUserProfileController | POST /api/profiles |
-| US02 View profil | ViewUserProfileController | GET /api/profiles/:id |
-| US03 Update profil | UpdateUserProfileController | PUT /api/profiles/:id |
-| US04 Suspend profil | SuspendUserProfileController | POST /api/profiles/:id/suspend |
-| US05 Search nama profil | SearchUserProfileController | GET /api/profiles?name= |
-| US06 Create akun | CreateUserAccountController | POST /api/accounts |
-| US07 View akun | ViewUserAccountController | GET /api/accounts/:id |
-| US08 Update akun | UpdateUserAccountController | PUT /api/accounts/:id |
+| US01 Create profile | CreateUserProfileController | POST /api/profiles |
+| US02 View profile | ViewUserProfileController | GET /api/profiles/:id |
+| US03 Update profile | UpdateUserProfileController | PUT /api/profiles/:id |
+| US04 Suspend profile | SuspendUserProfileController | POST /api/profiles/:id/suspend |
+| US05 Search profile names | SearchUserProfileController | GET /api/profiles?name= |
+| US06 Create account | CreateUserAccountController | POST /api/accounts |
+| US07 View account | ViewUserAccountController | GET /api/accounts/:id |
+| US08 Update account | UpdateUserAccountController | PUT /api/accounts/:id |
 
-GET /api/accounts hanya daftar normal, bukan fitur pencarian akun. Tidak ditambahkan suspend/delete/reset password/reaktivasi akun.
+`GET /api/accounts` lists records only; it is not Member 1 account-search functionality. Account suspension, deletion, password reset, and reactivation were not added.
 
-## Cara membaca kode
+## Reading the Code
 
-1. Mulai dari route di app.py: input diterima dari React.
-2. Lihat class controller sesuai story: cek izin, validasi, lalu jalankan aturan bisnis.
-3. Lihat Repository: SQL memakai parameter, foreign key dan transaksi.
-4. Lihat models.py: data dikembalikan sebagai JSON publik tanpa hash password.
+1. Start with routes in app.py: React input is received there.
+2. Inspect the controller for each story: check permissions, validation, and business rules.
+3. Inspect the Repository: SQL uses parameters, foreign keys, and transactions.
+4. Inspect models.py: public JSON is returned without password hashes.
 
-Validasi yang dipakai bersama ada di validation.py. Backend lama TypeScript beserta Express, bcryptjs, tsx dan concurrently dihapus. Tidak ada abstract repository, service factory, atau UnitOfWork interface tambahan. Database dan format JSON lama dipertahankan agar perubahan tidak merusak tampilan atau data sebelumnya.
+Shared validation is in validation.py. The old TypeScript, Express, bcryptjs, tsx, and concurrently backend was removed. No additional abstract repository, service factory, or UnitOfWork interface was added. The database and old JSON format remain compatible so existing screens and data are not broken.
 
-## Pengujian
+## Testing
 
-Tes backend memakai unittest bawaan Python di tests/test_member1.py. Tes browser di tests/browser/member1.spec.ts memakai Flask dan database khusus tes.
+Backend tests use Python unittest in tests/test_member1.py. Browser tests in tests/browser/member1.spec.ts use Flask and a dedicated test database.
 
-Cakupan: delapan story, validasi/duplikasi, rename profil, relasi akun, password/hash, suspend, akses admin, pencegahan lockout, transaksi/error penyimpanan, restart database, serta kompatibilitas hash dari backend JavaScript sebelumnya. Tes browser memeriksa reload, cancel, retry, submit ganda, inline error, stale assignment dan mobile.
+Coverage includes the eight stories, validation, duplicate checks, profile renaming, account relationships, password hashing, suspension, administrator access, lockout prevention, storage/error transactions, database restart, and compatibility with hashes from the previous JavaScript backend. Browser tests cover reload, cancel, retry, duplicate submission, inline errors, stale assignments, and mobile layout.
 
-Hasil verifikasi pada 23 Oktober 2026:
+Verification on 23 October 2026:
 
-- 16 tes unittest Python: lulus.
-- 7 tes browser Chromium dengan API Flask: lulus (30,8 detik).
-- TypeScript frontend dan build produksi: lulus.
-- Pemeriksaan database lama: ID, relasi, status dan hash akun tetap utuh.
-- git diff --check: lulus.
+- 16 Python unittest tests: passed.
+- 7 Chromium browser tests with Flask API: passed (30.8 seconds).
+- TypeScript frontend and production build: passed.
+- Legacy database check: IDs, relationships, statuses, and account hashes remained intact.
+- `git diff --check`: passed.
 
-Pengujian memakai Python 3.13.12, Flask 3.1.3 dan bcrypt 5.0.0 yang sudah tersedia melalui pgAdmin. Interpreter embedded tersebut diakses dengan path lengkap dan runpy untuk menambahkan root proyek ke import path. Tidak ada instalasi Python sistem atau perubahan PATH. Panduan README menggunakan instalasi Python standar dan venv, yang tidak tersedia pada interpreter embedded itu.
-
-Tes browser memakai build produksi dan viewport mobile Chromium, bukan perangkat fisik. Login/sesi asli tetap bergantung pada Member 2 dan belum diuji.
+Browser tests use the production build and a mobile Chromium viewport, not a physical device. Real login and sessions depend on Member 2 and have not been tested.

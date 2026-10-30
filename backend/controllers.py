@@ -1,4 +1,4 @@
-"""Control: satu class untuk setiap user story, dengan aturan bisnis yang jelas."""
+"""Control: one class for each user story with clear business rules."""
 
 from uuid import uuid4
 
@@ -8,7 +8,7 @@ from backend.validation import hash_password, validate_account, validate_profile
 
 
 def effective_access(repository: Repository, actor_id: str | None) -> tuple[UserAccount, UserProfile]:
-    """Dipakai bersama Member 2 untuk memeriksa akses pada setiap request."""
+    """Used with Member 2 to recheck access on every request."""
     if not actor_id:
         raise AppError("UNAUTHENTICATED", "An authenticated session is required.")
     account = repository.find_account(actor_id)
@@ -132,7 +132,7 @@ class CreateUserAccountController(Controller):
         self.check_account_details(values["username"], values["email"])
         password_hash = hash_password(data["password"])
         with self.repository.transaction():
-            # Profil/akses mungkin berubah saat proses hashing: periksa lagi.
+            # Profile or access may change during hashing: check again.
             self.require_admin("accounts:write")
             profile = self.check_assignment(values["profile_id"])
             self.check_account_details(values["username"], values["email"])

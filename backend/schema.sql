@@ -1,4 +1,4 @@
--- Skema yang sama dengan implementasi sebelumnya: data lama tetap bisa dipakai.
+-- Keep the schema compatible with the previous implementation so existing data remains usable.
 CREATE TABLE IF NOT EXISTS user_profiles (
     profile_id TEXT PRIMARY KEY,
     name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 80),
