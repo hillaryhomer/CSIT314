@@ -1,5 +1,7 @@
 # Member 3: Current and Past Interior Design Projects
 
+Member 4 now extends this implementation with style filters, safe public projections and persistent favourites in schema version 4. See [MEMBER4.md](MEMBER4.md); the Member 4 contract supersedes the historical favourite integration placeholder and public owner/company ID fields below.
+
 Implemented on 6 November 2026 using the existing React/TypeScript, Flask, SQLite, UserAccount/UserProfile and Member 2 session infrastructure. No separate designer/account store is introduced.
 
 ## User-story checklist
@@ -90,7 +92,7 @@ Image records belong exclusively to a project. Deleting that project cascades on
 
 Visibility assumption: the existing public discovery screen can show Current and Past projects from active accounts with an active designer profile and project-management permission. No approval/publication lifecycle is invented. Public data excludes credentials. Confirm this visibility rule with the group if public access should differ.
 
-**Member 5:** stable projectId, ownerAccountId, status and timestamps are available through the shared repository and owned list/detail APIs. The analytics page now lists actual owned project references and says activity metrics are unavailable. It does not record views, invent counts, or implement analytics. The activity/shortlist backend remains a blocker. Future activity/favourite tables must reference the stable project_id and define their deletion policy before claiming full integration.
+**Member 5:** shared project IDs and ownership now feed persistent customer detail views and favourite-derived shortlist counts. The analytics Boundary lists owned Current/Past projects with both counts. Project deletion cascades to views and favourites. See [MEMBER5.md](MEMBER5.md) for event deduplication, metrics and report retention limits.
 
 **Member 6:** the repository has no category entity/backend from Member 6. A minimal shared `project_categories` table and read endpoint `/api/project-categories` are provided. The three previously displayed category IDs/names are seeded once; React no longer keeps a separate category array. Designer forms, customer filters and the manager category read screen use that endpoint. Member 6 must connect its CRUD to this source rather than create another store.
 

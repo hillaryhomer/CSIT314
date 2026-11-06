@@ -6,13 +6,17 @@ from pathlib import Path
 import sqlite3
 
 from backend.models import UserAccount, UserProfile
-from backend.validation import normalize
+from backend.validation import normalize, clean
+from backend.report_service import utc_timestamp
 
 
 def connect_database(filename: str) -> sqlite3.Connection:
     Path(filename).parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(filename, timeout=5, isolation_level=None)
     connection.row_factory = sqlite3.Row
+    connection.create_function('normalize', 1, normalize, deterministic=True)
+    connection.create_function('clean', 1, clean, deterministic=True)
+    connection.create_function('utc_timestamp', 1, utc_timestamp, deterministic=True)
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
 
@@ -21,7 +25,7 @@ def initialize_database(filename: str) -> None:
     connection = connect_database(filename)
     try:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version > 3:
+        if version > 6:
             raise RuntimeError("Database version is newer than this application.")
         if version == 0:
             schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
@@ -31,6 +35,15 @@ def initialize_database(filename: str) -> None:
             connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
         if version < 3:
             migration = Path(__file__).with_name("member3.sql").read_text(encoding="utf-8")
+            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
+        if version < 4:
+            migration = Path(__file__).with_name("member4.sql").read_text(encoding="utf-8")
+            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
+        if version < 5:
+            migration = Path(__file__).with_name("member5.sql").read_text(encoding="utf-8")
+            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
+        if version < 6:
+            migration = Path(__file__).with_name("member6.sql").read_text(encoding="utf-8")
             connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
     finally:
         connection.close()

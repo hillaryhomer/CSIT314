@@ -201,7 +201,7 @@ class Member2Tests(unittest.TestCase):
         initialize_database(filename)
         connection = connect_database(filename)
         try:
-            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 6)
             self.assertEqual(Repository(connection).find_account('old-account').password_hash, self.password_hash)
             self.assertIsNone(Member2Repository(Repository(connection)).company('old-account'))
         finally:

@@ -82,7 +82,11 @@ class Member3Tests(unittest.TestCase):
                 self.assertEqual(record['createdAt'], project['createdAt'])
                 self.assertEqual(record['status'], status)
                 public = self.app.test_client()
-                self.assertEqual(public.get('/api/catalog/projects/' + project['projectId']).get_json(), record)
+                public_record = public.get('/api/catalog/projects/' + project['projectId']).get_json()
+                for key in ('projectId', 'title', 'description', 'categoryId', 'style', 'status', 'images', 'createdAt', 'updatedAt'):
+                    self.assertEqual(public_record[key], record[key])
+                self.assertNotIn('ownerAccountId', public_record)
+                self.assertNotIn('companyId', public_record)
                 self.assertEqual(public.get('/api/catalog/projects?q=renamed').get_json()[0]['projectId'], record['projectId'])
                 image = public.get(record['images'][0]['url'])
                 self.assertEqual(image.status_code, 200)
@@ -213,6 +217,6 @@ class Member3Tests(unittest.TestCase):
         con.close(); initialize_database(legacy); con = connect_database(legacy)
         try:
             for table, records in before.items(): self.assertEqual(con.execute('SELECT * FROM ' + table).fetchall(), records)
-            self.assertEqual(con.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(con.execute('PRAGMA user_version').fetchone()[0], 6)
             self.assertEqual(con.execute('PRAGMA foreign_key_check').fetchall(), [])
         finally: con.close()

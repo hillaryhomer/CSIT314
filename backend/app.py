@@ -24,6 +24,9 @@ from backend.controllers import effective_access
 from backend.member2_repository import Member2Repository
 from backend.member2 import LoginController, SearchUserAccountController, SuspendUserAccountController, CompanyController
 from backend.project_boundary import register_project_routes
+from backend.customer_boundary import register_customer_routes
+from backend.activity_boundary import register_activity_routes
+from backend.manager_boundary import register_manager_routes
 
 
 class AuthenticatedContext:
@@ -108,8 +111,8 @@ def create_app(database_path: str = "data/member1.sqlite",
             return None
         # Keep existing small JSON limits, while allowing atomic project/image submissions.
         request.max_content_length = 16 * 1024 * 1024 if request.path.startswith('/api/designer/projects/') else 16 * 1024
-        if request.method == 'GET' and (request.path.startswith('/api/catalog/projects') or request.path.startswith('/api/project-images/') or request.path == '/api/project-categories'):
-            g.actor_id = context.resolve(request) if request.path.startswith('/api/project-images/') else None
+        if request.method == 'GET' and (request.path.startswith('/api/catalog/projects') or request.path.startswith('/api/project-images/') or request.path in ('/api/project-categories', '/api/catalog/styles')):
+            g.actor_id = context.resolve(request)
             return None
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             if request.headers.get("Origin") not in (None, allowed_origin):
@@ -255,6 +258,9 @@ def create_app(database_path: str = "data/member1.sqlite",
         return jsonify(controller.execute(account_id, request.get_json()))
 
     register_project_routes(app, repository)
+    register_customer_routes(app, repository)
+    register_activity_routes(app, repository)
+    register_manager_routes(app, repository)
 
     if static_directory:
         directory = Path(static_directory).resolve()

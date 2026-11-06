@@ -128,7 +128,9 @@ test('shared category records and real project references replace category/analy
   expect(created.status()).toBe(201);
   await page.goto('/designer/analytics');
   await expect(page.getByRole('row').filter({ hasText: 'Analytics Reference Project' })).toBeVisible();
-  await expect(page.getByText('Views and shortlists are unavailable', { exact: false })).toBeVisible();
+  const analytics = page.getByRole('row').filter({ hasText: 'Analytics Reference Project' });
+  await expect(analytics.locator('td').nth(3)).toHaveText('0');
+  await expect(analytics.locator('td').nth(4)).toHaveText('0');
   await page.goto('/logout'); await page.getByRole('button', { name: 'Log Out', exact: true }).click();
   await login(page, 'browser.manager'); await page.goto('/manager/categories');
   await expect(page.getByRole('row').filter({ hasText: 'CAT001' })).toContainText('Residential');

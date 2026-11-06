@@ -48,16 +48,38 @@ class ProjectRepository:
             clauses.append(self.VISIBLE)
         return self.serialize(self.connection.execute(self.SELECT + ' WHERE ' + ' AND '.join(clauses), args).fetchone())
 
-    def search(self, status=None, owner=None, query='', category_id='', public=False):
+    def search(self, status=None, owner=None, query='', category_id='', public=False, style='', favourite_customer=None):
         clauses, args = ['1=1'], []
         for column, value in [('p.status', status), ('p.owner_account_id', owner), ('p.category_id', category_id or None)]:
             if value is not None:
                 clauses.append(column + '=?'); args.append(value)
         if public:
             clauses.append(self.VISIBLE)
+        if favourite_customer is not None:
+            clauses.append('EXISTS (SELECT 1 FROM favourites f WHERE f.project_id=p.project_id AND f.customer_account_id=?)')
+            args.append(favourite_customer)
         rows = self.connection.execute(self.SELECT + ' WHERE ' + ' AND '.join(clauses) + ' ORDER BY p.created_at DESC, p.project_id', args).fetchall()
         keyword = normalize(query)
-        return [self.serialize(r) for r in rows if keyword in normalize(' '.join(r[k] or '' for k in ('title','description','style','category_name','company_name')))]
+        selected_style = normalize(style)
+        return [self.serialize(r) for r in rows
+                if (not selected_style or normalize(r['style']) == selected_style)
+                and keyword in normalize(' '.join(r[k] or '' for k in ('title','description','style','category_name','company_name')))]
+
+    def styles(self):
+        rows = self.connection.execute(self.SELECT + ' WHERE ' + self.VISIBLE + ' ORDER BY p.style,p.project_id').fetchall()
+        unique = {}
+        for row in rows:
+            unique.setdefault(normalize(row['style']), row['style'])
+        return [unique[key] for key in sorted(unique)]
+
+    @staticmethod
+    def public_projection(project):
+        # IDs needed to manage owners/companies and account usernames remain internal.
+        fields = ('projectId', 'title', 'description', 'categoryId', 'categoryName', 'categoryStatus',
+                  'style', 'status', 'images', 'companyName', 'createdAt', 'updatedAt')
+        result = {key: project[key] for key in fields}
+        result['designerName'] = project['companyName'] or 'Interior Designer'
+        return result
 
     def create(self, project):
         self.connection.execute('INSERT INTO interior_design_projects VALUES (?,?,?,?,?,?,?,?,?,?)',

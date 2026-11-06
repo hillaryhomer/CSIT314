@@ -19,7 +19,7 @@ export async function api<T>(path: string, method = 'GET', body?: unknown, signa
   }
   const data = await response.json().catch(() => { throw new RequestError('The server returned an unreadable response.'); });
   if (!response.ok) {
-    if (response.status === 401 || data.error?.message?.includes('assigned profile cannot access')) window.dispatchEvent(new Event('session-ended'));
+    if (!['/auth/session', '/auth/login'].includes(path) && (response.status === 401 || data.error?.message?.includes('assigned profile cannot access'))) window.dispatchEvent(new Event('session-ended'));
     throw new RequestError(data.error?.message ?? 'The request failed.', data.error?.fields, data.error?.code);
   }
   return data as T;
@@ -32,11 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  function accept(value: Session | null) { csrfToken = value?.csrfToken ?? ''; setSession(value); }
+  const sessionVersion = useRef(0);
+  function accept(value: Session | null) { sessionVersion.current++; csrfToken = value?.csrfToken ?? ''; setSession(value); setError(''); setLoading(false); }
   async function refresh() {
-    try { accept(await api<Session>('/auth/session')); setError(''); }
-    catch (failure) { accept(null); setError(failure instanceof Error ? failure.message : 'Unable to check session.'); }
-    finally { setLoading(false); }
+    const version = ++sessionVersion.current;
+    try { const current = await api<Session>('/auth/session'); if (version === sessionVersion.current) accept(current); }
+    catch (failure) { if (version === sessionVersion.current) { accept(null); setError(failure instanceof Error ? failure.message : 'Unable to check session.'); } }
   }
   useEffect(() => {
     void refresh();
@@ -75,10 +76,10 @@ export function LoginForm({ go }: { go: (path: string) => void }) {
 }
 
 export function LogoutForm({ go }: { go: (path: string) => void }) {
-  const { session, accept } = useAuth(); const [busy, setBusy] = useState(false); const [error, setError] = useState<unknown>(null);
-  return <main className="logout-page"><div className="logout-card"><h1>End your session?</h1><p>{session?.development ? 'Development mode uses a fixed server identity. Restart without --dev to use real login and logout.' : 'Sign out of this browser session.'}</p><Failure error={error}/><div className="page-actions"><Button disabled={busy} onClick={() => go(session ? roleHome[session.role] : '/')}>Cancel</Button><Button kind="primary" disabled={busy || !!session?.development} onClick={async () => {
+  const { session, accept, loading } = useAuth(); const [busy, setBusy] = useState(false); const [error, setError] = useState<unknown>(null);
+  return <main className="logout-page"><div className="logout-card"><h1>End your session?</h1><p>{session?.development ? 'Development mode uses a fixed server identity. Restart without --dev to use real login and logout.' : 'Sign out of this browser session.'}</p>{loading && <p role="status">Checking session…</p>}<Failure error={error}/><div className="page-actions"><Button disabled={busy} onClick={() => go(session ? roleHome[session.role] : '/')}>Cancel</Button><Button kind="primary" disabled={busy || loading || !!session?.development} onClick={async () => {
     setBusy(true); setError(null);
-    try { if (session) await api('/auth/logout', 'POST', {}); accept(null); go('/login'); }
+    try { await api('/auth/logout', 'POST', {}); accept(null); go('/login'); }
     catch (failure) {
       if (failure instanceof RequestError && failure.code === 'UNAUTHENTICATED') { accept(null); go('/login'); }
       else setError(failure);

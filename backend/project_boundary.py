@@ -47,14 +47,6 @@ def register_project_routes(app, repository):
     def project_categories():
         return jsonify(ProjectRepository(repository()).categories())
 
-    @app.get('/api/catalog/projects')
-    def customer_projects():
-        return jsonify(CustomerProjectController(repository(), None).search(request.args.get('q', ''), request.args.get('categoryId', '')))
-
-    @app.get('/api/catalog/projects/<project_id>')
-    def customer_project(project_id):
-        return jsonify(CustomerProjectController(repository(), None).view(project_id))
-
     @app.get('/api/project-images/<image_id>')
     def project_image(image_id):
         image = CustomerProjectController(repository(), getattr(g, 'actor_id', None)).image(image_id)

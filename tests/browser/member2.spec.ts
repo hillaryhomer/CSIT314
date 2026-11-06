@@ -48,7 +48,9 @@ test('designer CRUD, search, cancel, refresh and logout revoke access', async ({
   await page.reload();
   await expect(page.getByText('No company information yet')).toBeVisible();
   await page.goto('/logout');
+  const logout = page.waitForResponse(response => response.url().endsWith('/api/auth/logout') && response.request().method() === 'POST');
   await page.getByRole('button', { name: 'Log Out', exact: true }).click();
+  expect((await logout).status()).toBe(200);
   await expect(page).toHaveURL(/\/login$/);
   await page.goBack();
   await page.goBack();

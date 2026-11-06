@@ -24,6 +24,16 @@ if (member2) {
   if (fixture.error) throw fixture.error;
   if (fixture.status !== 0) process.exit(fixture.status || 1);
 }
+if (port === '4177' || port === '4178') {
+  const projects = spawnSync(python, ['-c', "import sys,runpy;sys.path.insert(0,'.');runpy.run_path('tests/browser_member4_fixture.py')"], { env, stdio: 'inherit' });
+  if (projects.error) throw projects.error;
+  if (projects.status !== 0) process.exit(projects.status || 1);
+}
+if (port === '4179') {
+  const reports = spawnSync(python, ['-c', "import sys,runpy;sys.path.insert(0,'.');runpy.run_path('tests/browser_member6_fixture.py')"], { env, stdio: 'inherit' });
+  if (reports.error) throw reports.error;
+  if (reports.status !== 0) process.exit(reports.status || 1);
+}
 const server = spawn(python, ['-c', entry, ...(member2 ? [] : ['--dev']), '--serve-ui'], { env, stdio: 'inherit' });
 server.on('error', error => { console.error(error.message); process.exit(1); });
 server.on('exit', code => process.exit(stopping ? 0 : code || 0));

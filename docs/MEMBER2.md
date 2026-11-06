@@ -1,5 +1,7 @@
 # Member 2 implementation
 
+Member 4 now supplies private customer favourites through the same sessions and schema version 4. See [MEMBER4.md](MEMBER4.md) for current customer contracts and the shared logout/session race fixes.
+
 Member 3 extends the same database to schema version 3; see [MEMBER3.md](MEMBER3.md) for project/image/category tables. The version 2 migration described here remains part of the migration chain.
 
 US09–19, US35–36 and US47–48 use the same Flask application, `UserAccount`, `UserProfile`, bcrypt helpers and SQLite database as Member 1. `app.py` at the repository root delegates to `backend.app`; the old in-memory registration/company application and unused templates were removed.

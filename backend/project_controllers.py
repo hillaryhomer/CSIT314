@@ -7,6 +7,7 @@ from backend.models import AppError
 from backend.project_entity import InteriorDesignProject
 from backend.project_repository import ProjectRepository
 from backend.project_validation import validate_project, validate_image
+from backend.customer_controllers import SearchIDPController, ViewIDPController
 
 
 class ProjectController(Controller):
@@ -114,16 +115,11 @@ class SearchPastIDPController(ProjectController):
 
 class CustomerProjectController(Controller):
     """Read adapter for Member 4; no publication or analytics workflow is introduced."""
-    def search(self, query='', category_id=''):
-        if len(query) > 254 or len(category_id) > 100:
-            raise AppError('VALIDATION', 'Search is too long.')
-        return ProjectRepository(self.repository).search(query=query, category_id=category_id, public=True)
+    def search(self, query='', category_id='', style=''):
+        return SearchIDPController(self.repository, self.actor_id).execute(query, category_id, style)
 
     def view(self, project_id):
-        project = ProjectRepository(self.repository).find(project_id, public=True)
-        if not project:
-            raise AppError('NOT_FOUND', 'Project was not found.')
-        return project
+        return ViewIDPController(self.repository, self.actor_id).execute(project_id)
 
     def image(self, image_id):
         store = ProjectRepository(self.repository)

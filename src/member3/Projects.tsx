@@ -7,7 +7,7 @@ export function Failure({ error, retry }: { error: unknown; retry?: () => void }
   return error ? <div role="alert" className="admin-error"><p>{error instanceof Error ? error.message : 'The request failed. Please retry.'}</p>{retry && <Button onClick={retry}>Retry</Button>}</div> : null;
 }
 
-export function ProjectDetailsContent({ project }: { project: ProjectRecord }) {
+export function ProjectDetailsContent({ project }: { project: Omit<ProjectRecord, 'ownerAccountId' | 'companyId'> }) {
   return <div className="project-detail-content"><div className="project-gallery">
     {project.images.length ? project.images.map((image, i) => <img key={image.imageId} src={image.url} alt={`${project.title}, image ${i + 1}`}/>) : <p className="inline-note">No project images uploaded.</p>}
     </div><h2>{project.title}</h2><Badge>{project.status}</Badge><p className="project-description">{project.description}</p>

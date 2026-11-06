@@ -16,6 +16,9 @@
     "test:e2e": "playwright test",
     "test:e2e:member2": "playwright test -c playwright.member2.config.ts",
     "test:e2e:member3": "playwright test -c playwright.member3.config.ts",
+    "test:e2e:member4": "playwright test -c playwright.member4.config.ts",
+    "test:e2e:member5": "playwright test -c playwright.member5.config.ts",
+    "test:e2e:member6": "playwright test -c playwright.member6.config.ts",
     "admin:create": "python -m backend.app --create-admin"
   },
   "dependencies": {
