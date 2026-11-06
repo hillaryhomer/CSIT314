@@ -282,10 +282,10 @@ def create_app(database_path: str = "data/member1.sqlite",
 def main():
     parser = argparse.ArgumentParser(description="Backend Python Member 1")
     parser.add_argument("--dev", action="store_true", help="Use the development administrator identity")
-    parser.add_argument("--init", action="store_true", help="Buat tabel database")
+    parser.add_argument("--init", action="store_true", help="Initialize the database tables")
     parser.add_argument("--seed", action="store_true", help="Add development sample data")
     parser.add_argument('--create-admin', action='store_true', help='Interactively create an administrator; never overwrites existing accounts')
-    parser.add_argument("--serve-ui", action="store_true", help="Sajikan hasil build React")
+    parser.add_argument("--serve-ui", action="store_true", help="Serve the built React application")
     args = parser.parse_args()
     environment = os.getenv("APP_ENV", os.getenv("NODE_ENV", "development" if args.dev else "production"))
     if args.dev and environment != "development":

@@ -19,7 +19,7 @@ All controllers are in **backend/controllers.py**. The API boundary is in backen
 
 ## Reading the Code
 
-1. Start with routes in app.py: React input is received there.
+1. Start with routes in `backend/app.py`: React input is received there. The root `app.py` is a compatibility entry point.
 2. Inspect the controller for each story: check permissions, validation, and business rules.
 3. Inspect the Repository: SQL uses parameters, foreign keys, and transactions.
 4. Inspect models.py: public JSON is returned without password hashes.
