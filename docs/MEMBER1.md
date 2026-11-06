@@ -1,4 +1,6 @@
-﻿# Member 1 Checklist
+> Member 1 scope/history. Member 2 now supplies account search/suspension and real shared sessions; see [MEMBER2.md](MEMBER2.md).
+
+ï»¿# Member 1 Checklist
 
 All controllers are in **backend/controllers.py**. The API boundary is in backend/app.py, entities are in backend/models.py, and SQL/repository code is in backend/database.py. React screens remain in src/member1/AdminManagement.tsx.
 

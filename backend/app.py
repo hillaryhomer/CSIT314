@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import secrets
 import sqlite3
+from getpass import getpass
+from uuid import uuid4
 
 from flask import Flask, Request, g, jsonify, request, send_from_directory
 from werkzeug.exceptions import BadRequest, NotFound, RequestEntityTooLarge
@@ -17,14 +19,28 @@ from backend.controllers import (
 )
 from backend.database import Repository, connect_database, initialize_database
 from backend.models import AppError, UserAccount, UserProfile
-from backend.validation import hash_password
+from backend.validation import hash_password, validate_account
+from backend.controllers import effective_access
+from backend.member2_repository import Member2Repository
+from backend.member2 import LoginController, SearchUserAccountController, SuspendUserAccountController, CompanyController
+from backend.project_boundary import register_project_routes
 
 
 class AuthenticatedContext:
-    """Member 2 replaces resolve() with a real login-session check."""
+    """Resolve an opaque, expiring session against server-side storage."""
+
+    def __init__(self, database_path=None):
+        self.database_path = database_path
 
     def resolve(self, incoming_request: Request) -> str | None:
-        return None
+        if not self.database_path:
+            return None
+        connection = connect_database(self.database_path)
+        try:
+            stored = Member2Repository(Repository(connection)).session(incoming_request.cookies.get('csit314_session'))
+            return stored['account_id'] if stored else None
+        finally:
+            connection.close()
 
 
 class DevelopmentContext(AuthenticatedContext):
@@ -70,9 +86,10 @@ def create_app(database_path: str = "data/member1.sqlite",
                allowed_origin: str = "http://127.0.0.1:5173",
                static_directory: str | None = None) -> Flask:
     app = Flask(__name__, static_folder=None)
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
     initialize_database(database_path)
-    context = auth_context or AuthenticatedContext()
+    context = auth_context or AuthenticatedContext(database_path)
+    app.config['SESSION_COOKIE_SECURE'] = os.getenv('COOKIE_SECURE', '0') == '1'
 
     def repository() -> Repository:
         if "database" not in g:
@@ -89,14 +106,27 @@ def create_app(database_path: str = "data/member1.sqlite",
     def check_request():
         if not request.path.startswith("/api/") or request.path == "/api/health":
             return None
+        # Keep existing small JSON limits, while allowing atomic project/image submissions.
+        request.max_content_length = 16 * 1024 * 1024 if request.path.startswith('/api/designer/projects/') else 16 * 1024
+        if request.method == 'GET' and (request.path.startswith('/api/catalog/projects') or request.path.startswith('/api/project-images/') or request.path == '/api/project-categories'):
+            g.actor_id = context.resolve(request) if request.path.startswith('/api/project-images/') else None
+            return None
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             if request.headers.get("Origin") not in (None, allowed_origin):
                 raise AppError("FORBIDDEN", "The request origin is not permitted.")
             if not request.is_json:
                 raise AppError("VALIDATION", "Use application/json for writes.")
+        if request.path == '/api/auth/login':
+            return None
         g.actor_id = context.resolve(request)
         if not g.actor_id:
             raise AppError("UNAUTHENTICATED", "An authenticated session is required.")
+        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') and not isinstance(context, DevelopmentContext):
+            stored = Member2Repository(repository()).session(request.cookies.get('csit314_session'))
+            if not stored or not secrets.compare_digest(stored['csrf_token'], request.headers.get('X-CSRF-Token', '')):
+                raise AppError('FORBIDDEN', 'Invalid session security token. Refresh and retry.')
+        if request.path != '/api/auth/logout':
+            effective_access(repository(), g.actor_id)
 
     @app.after_request
     def response_headers(response):
@@ -134,6 +164,51 @@ def create_app(database_path: str = "data/member1.sqlite",
     def health():
         return jsonify(status="ok")
 
+    @app.post('/api/auth/login')
+    def login():
+        token, payload = LoginController(repository(), None).execute(request.get_json(), request.cookies.get('csit314_session', ''))
+        response = jsonify(payload)
+        response.set_cookie('csit314_session', token, max_age=28800, httponly=True,
+                            secure=app.config['SESSION_COOKIE_SECURE'], samesite='Strict', path='/')
+        return response
+
+    @app.get('/api/auth/session')
+    def current_session():
+        account, profile = effective_access(repository(), g.actor_id)
+        stored = Member2Repository(repository()).session(request.cookies.get('csit314_session'))
+        return jsonify(account=account.to_dict(profile), role=profile.role, permissions=profile.permissions,
+                       csrfToken=stored['csrf_token'] if stored else '', development=isinstance(context, DevelopmentContext))
+
+    @app.post('/api/auth/logout')
+    def logout():
+        request.get_json()
+        Member2Repository(repository()).remove_session(request.cookies.get('csit314_session', ''))
+        response = jsonify(loggedOut=True)
+        response.delete_cookie('csit314_session', path='/', samesite='Strict')
+        return response
+
+    @app.post('/api/accounts/<account_id>/suspend')
+    def suspend_account(account_id):
+        request.get_json()
+        return jsonify(SuspendUserAccountController(repository(), g.actor_id).execute(account_id))
+
+    @app.get('/api/company')
+    def view_company():
+        return jsonify(CompanyController(repository(), g.actor_id).view(request.args.get('q', '')))
+
+    @app.post('/api/company')
+    def create_company():
+        return jsonify(CompanyController(repository(), g.actor_id).create(request.get_json())), 201
+
+    @app.put('/api/company/<company_id>')
+    def update_company(company_id):
+        return jsonify(CompanyController(repository(), g.actor_id).update(company_id, request.get_json()))
+
+    @app.delete('/api/company/<company_id>')
+    def delete_company(company_id):
+        request.get_json()
+        return jsonify(CompanyController(repository(), g.actor_id).delete(company_id))
+
     @app.get("/api/profiles")
     def search_profiles():
         controller = SearchUserProfileController(repository(), g.actor_id)
@@ -160,9 +235,10 @@ def create_app(database_path: str = "data/member1.sqlite",
 
     @app.get("/api/accounts")
     def list_accounts():
-        if request.args:
-            raise AppError("VALIDATION", "Account search is not implemented by Member 1.")
-        return jsonify(ViewUserAccountController(repository(), g.actor_id).list_accounts())
+        if set(request.args) - {'q', 'username', 'email'}:
+            raise AppError('VALIDATION', 'Unsupported account search field.')
+        return jsonify(SearchUserAccountController(repository(), g.actor_id).execute(
+            request.args.get('q', request.args.get('username', request.args.get('email', '')))))
 
     @app.post("/api/accounts")
     def create_account():
@@ -177,6 +253,8 @@ def create_app(database_path: str = "data/member1.sqlite",
     def update_account(account_id):
         controller = UpdateUserAccountController(repository(), g.actor_id)
         return jsonify(controller.execute(account_id, request.get_json()))
+
+    register_project_routes(app, repository)
 
     if static_directory:
         directory = Path(static_directory).resolve()
@@ -200,23 +278,51 @@ def main():
     parser.add_argument("--dev", action="store_true", help="Use the development administrator identity")
     parser.add_argument("--init", action="store_true", help="Buat tabel database")
     parser.add_argument("--seed", action="store_true", help="Add development sample data")
+    parser.add_argument('--create-admin', action='store_true', help='Interactively create an administrator; never overwrites existing accounts')
     parser.add_argument("--serve-ui", action="store_true", help="Sajikan hasil build React")
     args = parser.parse_args()
     environment = os.getenv("APP_ENV", os.getenv("NODE_ENV", "development" if args.dev else "production"))
     if args.dev and environment != "development":
         parser.error("--dev is disabled outside development.")
     filename = os.getenv("DATABASE_PATH", "data/member1.sqlite")
-    if args.seed:
+    if args.create_admin:
+        initialize_database(filename)
+        connection = connect_database(filename)
+        repository = Repository(connection)
+        try:
+            username = input('Admin username: ')
+            email = input('Admin email: ')
+            password = getpass('Password (12+ characters): ')
+            if password != getpass('Confirm password: '):
+                parser.error('Passwords do not match.')
+            profile_id = 'UP-' + str(uuid4())
+            values = validate_account(dict(username=username, email=email, password=password, profileId=profile_id), creating=True)
+            password_hash = hash_password(password)
+            with repository.transaction():
+                if repository.account_with_username(values['username']) or repository.account_with_email(values['email']):
+                    raise AppError('DUPLICATE', 'Username or email already exists; no account was changed.')
+                # Each CLI-created admin receives an independent profile to preserve existing roles.
+                profile = UserProfile(profile_id, 'Administrator ' + values['username'], 'admin',
+                    ['profiles:read', 'profiles:write', 'accounts:read', 'accounts:write'])
+                repository.create_profile(profile)
+                repository.create_account(UserAccount('UA-' + str(uuid4()), password_hash=password_hash, **values))
+            print('Administrator created. Start the backend without --dev to sign in.')
+        except AppError as error:
+            parser.error(error.message + (' ' + str(error.fields) if error.fields else ''))
+        finally:
+            connection.close()
+    elif args.seed:
         seed_development(filename, environment)
         print("Development sample data initialized.")
     elif args.init:
         initialize_database(filename)
         print("Database schema initialized (existing data preserved).")
     else:
-        auth = DevelopmentContext(environment, os.getenv("DEV_ADMIN_ACCOUNT_ID", "dev-admin")) if args.dev else AuthenticatedContext()
-        app = create_app(filename, auth, os.getenv("APP_ORIGIN", "http://127.0.0.1:5173"),
+        auth = DevelopmentContext(environment, os.getenv("DEV_ADMIN_ACCOUNT_ID", "dev-admin")) if args.dev else None
+        default_origin = 'http://127.0.0.1:' + (os.getenv('PORT', '3001') if args.serve_ui else '5173')
+        app = create_app(filename, auth, os.getenv("APP_ORIGIN", default_origin),
                          "dist" if args.serve_ui else None)
-        print("Development identity, not real login." if args.dev else "Member 2 authentication adapter required.")
+        print("Development identity, not real login." if args.dev else "Session authentication enabled.")
         app.run(host="127.0.0.1", port=int(os.getenv("PORT", "3001")), debug=False)
 
 

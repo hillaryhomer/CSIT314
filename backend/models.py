@@ -10,6 +10,22 @@ PERMISSIONS = (
 )
 
 
+@dataclass
+class CompanyInformation:
+    company_id: str
+    owner_id: str
+    name: str
+    reg_number: str
+    address: str
+    contact: str
+    description: str
+
+    def to_dict(self) -> dict:
+        return {'companyId': self.company_id, 'ownerId': self.owner_id, 'name': self.name,
+                'regNumber': self.reg_number, 'address': self.address,
+                'contact': self.contact, 'description': self.description}
+
+
 class AppError(Exception):
     def __init__(self, code: str, message: str, fields: dict | None = None):
         super().__init__(message)

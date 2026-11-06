@@ -1,0 +1,10 @@
+.project-id{display:block;max-width:250px;overflow-wrap:anywhere;font-size:10px;color:var(--muted);margin-top:6px}
+.project-description{white-space:pre-wrap;overflow-wrap:anywhere}
+.project-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.project-gallery img{width:100%;height:240px;object-fit:cover;border-radius:10px}
+.project-upload-list{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.project-upload-list>div{display:flex;flex-direction:column;gap:6px;width:140px}
+.project-upload-list img{width:140px;height:110px;object-fit:cover;border-radius:8px}
+.catalog-filters{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:18px;align-items:start;margin-bottom:24px}
+.catalog-filters .search-row{margin-bottom:0}
+@media(max-width:600px){.catalog-filters{grid-template-columns:1fr}.project-gallery{grid-template-columns:1fr}.project-id{max-width:170px}}

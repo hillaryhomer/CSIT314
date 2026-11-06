@@ -1,57 +1,73 @@
-﻿# CSIT314 - Member 1
+# CSIT314 - Members 1, 2 and 3
 
-The backend uses **Python + Flask + SQLite**. The existing React frontend remains in place so the visual presentation is unchanged. Scope: **US01-US08**, covering profile management and user-account creation, viewing, and updates.
+React/TypeScript frontend with a shared Python Flask + SQLite backend. Member 1 implements US01-08; Member 2 implements account search/suspension, shared login/logout and company management; Member 3 implements US20-29 Current/Past project CRUD, search and image storage. Customer discovery reads the same project database. Favourite persistence, analytics activity and category management remain integration work for their respective members.
 
-## Structure
+## Setup
 
-```text
-backend/
-  app.py          receives HTTP requests (Boundary)
-  controllers.py  eight user-story controllers (Control)
-  models.py       UserProfile and UserAccount (Entity)
-  database.py     reads and writes SQLite data (Repository)
-  validation.py   validates input and hashes passwords
-  schema.sql      database tables
-src/member1/      React screens and API calls
-tests/            Python and browser tests
-```
-
-Data flow: **React Form -> Flask API -> Controller -> Repository -> SQLite**.
-
-The backend contains five main Python files and English comments.
-
-## Installation
-
-Requires **Python 3.11+** and **Node.js 22.12+**. Run from the project folder:
+Requires Python 3.11+ and Node.js 22.12+:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 npm.cmd ci
-.venv\Scripts\python.exe -m backend.app --dev --seed
+.venv\Scripts\python.exe -m backend.app --create-admin
 ```
 
-The seed command creates the tables and development sample data once. It does not reset existing data. The database is stored in `data/member1.sqlite`. The schema, IDs, and existing bcrypt hashes remain compatible.
+The last command asks for a username, email and password. It creates a new administrator without overwriting existing accounts. Passwords require at least 12 characters and at most 72 UTF-8 bytes.
 
-## Running
+## Run with real login
 
-Terminal 1 - backend:
+Backend:
 
 ```powershell
-.venv\Scripts\python.exe -m backend.app --dev
+.venv\Scripts\python.exe -m backend.app
 ```
 
-Terminal 2 - frontend:
+Frontend, in another terminal:
 
 ```powershell
 npm.cmd run dev
 ```
 
-Open http://127.0.0.1:5173/admin/profiles or http://127.0.0.1:5173/admin/accounts.
+Open http://127.0.0.1:5173/login. Sign in as the administrator, create the required UserProfiles with their roles/permissions, and create accounts assigned to those profiles. Each account can then sign in through the same login page. Designers need the designer role and projects:manage permission to manage `/designer/current` and `/designer/past`. Company information, projects and uploaded images save to SQLite. A company is optional for project creation.
 
-The frontend forwards `/api` requests to Flask on port 3001. Data remains after refreshes and restarts. The role selector in the header changes the preview screen only.
+Alternatively, serve the built frontend and API together:
 
-## Testing
+```powershell
+npm.cmd run build
+.venv\Scripts\python.exe -m backend.app --serve-ui
+```
+
+Open http://127.0.0.1:3001/login. `python app.py` delegates to the same backend entry point. Set `PORT`, `DATABASE_PATH`, `APP_ORIGIN`, and `COOKIE_SECURE=1` as appropriate for another origin or HTTPS environment.
+
+The database is `data/member1.sqlite`. Startup or `python -m backend.app --init` migrates existing data to version 3, preserving accounts, profiles, company records and sessions. Project/image/category tables are added without resetting data. Install the updated requirements (including Pillow for server image validation) before starting. Sessions and project/image records survive server restart; session expiry is eight hours.
+
+## Structure
+
+```text
+backend/app.py                  HTTP Boundary and session/access middleware
+backend/controllers.py          Member 1 Controls and effective_access
+backend/member2.py              Member 2 Controls
+backend/models.py               UserProfile, UserAccount, CompanyInformation Entities
+backend/database.py             Member 1 Repository and schema migrations
+backend/member2_repository.py   Company/session Repository
+backend/schema.sql              Existing Member 1 schema
+backend/member2.sql             Version 2 migration
+backend/project_boundary.py     Member 3 HTTP routes and shared read adapters
+backend/project_controllers.py  Ten Current/Past project use cases
+backend/project_entity.py       InteriorDesignProject entity
+backend/project_repository.py   Shared project/category/image SQL
+backend/project_validation.py   Project and actual image validation
+backend/member3.sql             Version 3 migration
+backend/validation.py           Shared validation and bcrypt helpers
+src/member1/                    Admin profile/account screens and API adapter
+src/member2.tsx                 Shared auth, route guards, company management
+src/member3/                    Project forms/details and live catalog adapters
+```
+
+Flow: React -> Flask Boundary -> Control -> Repository -> SQLite. Displays and confirmations stay in the frontend. Server-side roles and ownership determine access.
+
+## Tests
 
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
@@ -59,14 +75,21 @@ npm.cmd run build
 npm.cmd exec playwright install chromium
 $env:PYTHON = (Resolve-Path '.venv\Scripts\python.exe').Path
 npm.cmd run test:e2e
+npm.cmd run test:e2e:member2
+npm.cmd run test:e2e:member3
 ```
 
-`PYTHON` selects the interpreter used by the browser tests. Browser tests use a separate database, not the application data. See the [Member 1 checklist and results](docs/MEMBER1.md).
+Backend and browser tests use disposable databases. `PYTHON` selects the browser harness interpreter. On machines where `python` resolves to a Windows Store alias, use an installed interpreter explicitly. The pgAdmin embedded Python available in the audit environment can execute tests but does not provide the standard `venv` module.
 
-If `python --version` does not work, install standard Python or choose an available interpreter. Browser testing uses Python 3.13.12 through the environment that provides pgAdmin. The embedded interpreter does not include the `venv` module, so the standard `venv` instructions above require a standard Python installation.
+## Development-only identity
 
-## Scope Boundaries
+For Member 1 demonstration without real login:
 
-Login/logout, account search, and account suspension remain Member 2 responsibilities. Development mode uses a server-side administrator identity for demonstration and is not real login. Without `--dev`, APIs reject access until Member 2 installs session checks. Development mode is rejected when `APP_ENV` or `NODE_ENV` is production.
+```powershell
+.venv\Scripts\python.exe -m backend.app --dev --seed
+.venv\Scripts\python.exe -m backend.app --dev
+```
 
-The [Member 2 handoff](docs/MEMBER2_HANDOFF.md) explains repository usage, password hashes, and shared access checks. Other member pages remain previews.
+`--dev` uses a fixed server-side admin identity and intentionally cannot demonstrate real logout. It is disabled when APP_ENV or NODE_ENV is production. Development seed passwords are random and unknown; use `--create-admin` for a login-capable administrator.
+
+See [Member 3 stories, API, image policy and integration contracts](docs/MEMBER3.md), [Member 2 architecture](docs/MEMBER2.md), and [Member 1 coverage](docs/MEMBER1.md). The original UML/specification is not present; field limits, category lifecycle and public project visibility are documented implementation assumptions pending confirmation against the lecturer's documents.

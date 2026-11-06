@@ -35,7 +35,7 @@ export function AdminManagement({ module, notify }: { module: Module; notify: (m
     const abort = new AbortController();
     setLoading(true); setError(null);
     const timer = setTimeout(() => {
-      const operation = profilesModule ? member1Api.profiles(query, abort.signal) : member1Api.accounts(abort.signal);
+      const operation = profilesModule ? member1Api.profiles(query, abort.signal) : member1Api.accounts(abort.signal, query);
       operation.then(rows => { if (!abort.signal.aborted) setRecords(rows); })
         .catch(failure => { if (!abort.signal.aborted) setError(asFailure(failure)); })
         .finally(() => { if (!abort.signal.aborted) setLoading(false); });
@@ -47,12 +47,12 @@ export function AdminManagement({ module, notify }: { module: Module; notify: (m
     <PageHead eyebrow="User Management" title={profilesModule ? 'User Profiles' : 'User Accounts'}
       description={profilesModule ? 'Define the roles available on the platform and the permissions each one grants.' : 'Individual sign-in accounts. Each account is assigned an existing user profile.'}/>
     <div className="search-row">
-      {profilesModule && <SearchBox value={query} onChange={setQuery} placeholder="Search profiles by name..."/>}
+      <SearchBox value={query} onChange={setQuery} placeholder={profilesModule ? "Search profiles by name..." : "Search accounts by username or email..."}/>
       <Button kind="primary" onClick={() => setDialog({ action: 'Create' })}><Plus size={18}/>Create {singular}</Button>
     </div>
     {loading ? <p role="status">Loading {profilesModule ? 'profiles' : 'accounts'}…</p>
       : error ? <Failure error={error} retry={() => setRevision(value => value + 1)}/>
-      : !records.length ? <Empty title={query ? 'No matching profiles' : `No ${module} yet`} message={query ? 'Try a different profile name.' : `Create a ${singular.toLowerCase()} to get started.`}/>
+      : !records.length ? <Empty title={query ? `No matching ${module}` : `No ${module} yet`} message={query ? 'Try a different keyword.' : `Create a ${singular.toLowerCase()} to get started.`}/>
       : <Table heads={profilesModule ? ['Profile ID', 'Profile Name', 'Role', 'Permissions', 'Status', 'Actions'] : ['Account ID', 'Username', 'Email', 'Assigned Profile', 'Status', 'Actions']}>
         {records.map(record => {
           const profile = 'profileId' in record && 'permissions' in record ? record : null;
@@ -65,12 +65,12 @@ export function AdminManagement({ module, notify }: { module: Module; notify: (m
             <td><Badge>{record.status}</Badge></td>
             <td><div className="row-actions"><button onClick={() => setDialog({ action: 'View', recordId: id })}>View</button>
               <button onClick={() => setDialog({ action: 'Update', recordId: id })}>Edit</button>
-              {profile && profile.status === 'Active' && <button className="danger-link" onClick={() => setDialog({ action: 'Suspend', recordId: id })}>Suspend</button>}
+              {record.status === 'Active' && <button className="danger-link" onClick={() => setDialog({ action: 'Suspend', recordId: id })}>Suspend</button>}
             </div></td>
           </tr>;
         })}
       </Table>}
-    <Note>{profilesModule ? 'Changes are saved to the server. Suspending a profile preserves its accounts and blocks protected access.' : 'Accounts are stored on the server. Account search, suspension and shared login/logout are owned by Member 2.'}</Note>
+    <Note>{profilesModule ? 'Changes are saved to the server. Suspending a profile preserves its accounts and blocks protected access.' : 'Accounts are stored on the server. Search by username/email or suspend an account to end its access.'}</Note>
     {dialog && <AdminRecordDialog key={`${module}-${dialog.action}-${dialog.recordId ?? 'new'}`} module={module} state={dialog}
       close={() => setDialog(null)} saved={message => { setDialog(null); notify(message); setRevision(value => value + 1); }}/ >}
   </>;
@@ -122,7 +122,7 @@ function AdminRecordDialog({ module, state, close, saved }: {
     if (inFlight.current) return;
     inFlight.current = true; setSaving(true); setSaveError(null);
     try {
-      if (state.action === 'Suspend') await member1Api.suspendProfile(state.recordId!);
+      if (state.action === 'Suspend') { if (profilesModule) await member1Api.suspendProfile(state.recordId!); else await member1Api.suspendAccount(state.recordId!); }
       else if (profilesModule) {
         if (state.action === 'Create') await member1Api.createProfile(profileForm);
         else await member1Api.updateProfile(state.recordId!, profileForm);
@@ -153,9 +153,9 @@ function AdminRecordDialog({ module, state, close, saved }: {
       : state.action === 'View' ? <><Details rows={rows}/><div className="form-actions"><Button onClick={close}>Close</Button></div></>
       : state.action === 'Suspend' ? <>
         <div className="warning-icon"><AlertTriangle/></div><Details rows={rows}/>
-        <p className="inline-note">Accounts assigned to this profile cannot access protected functions while their own account status remains unchanged. The profile and all account assignments are preserved. Existing sessions are not revoked by this operation; protected requests must re-check access.</p>
+        <p className="inline-note">{profilesModule ? 'Accounts assigned to this profile lose protected access; their account status remains unchanged. The profile and account records are preserved.' : 'This account will lose access immediately, including existing sessions. The account and its company records are preserved.'}</p>
         {saveError && <Failure error={saveError}/>}
-        <div className="form-actions"><Button disabled={saving} onClick={close}>Cancel</Button><Button disabled={saving} kind="danger" onClick={() => void submit()}>{saving ? 'Suspending…' : 'Suspend User Profile'}</Button></div>
+        <div className="form-actions"><Button disabled={saving} onClick={close}>Cancel</Button><Button disabled={saving} kind="danger" onClick={() => void submit()}>{saving ? 'Suspending…' : `Suspend ${singular}`}</Button></div>
       </> : <form className="form-stack" onSubmit={event => { event.preventDefault(); void submit(); }}>
         {saveError && <Failure error={saveError}/>}
         <fieldset className="admin-form-fields" disabled={saving}>

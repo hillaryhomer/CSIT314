@@ -1,4 +1,6 @@
-﻿# Handoff to Member 2
+> Historical handoff before Member 2 implementation. For the current session adapter, endpoints and company storage, see [MEMBER2.md](MEMBER2.md).
+
+ï»¿# Handoff to Member 2
 
 Use the shared Python backend and **data/member1.sqlite** database. Do not create a second account store.
 

@@ -254,7 +254,8 @@ class Member1Tests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/profiles", data="{", content_type="application/json").status_code, 400)
         self.assertEqual(self.client.post("/api/profiles", json=PROFILE, headers={"Origin": "https://attacker.example"}).status_code, 403)
         self.assertEqual(self.client.get("/api/accounts?name=user").status_code, 400)
-        self.assertEqual(self.client.post("/api/accounts/admin/suspend", json={}).status_code, 404)
+        # Member 2 now implements account suspension; self-suspension is forbidden.
+        self.assertEqual(self.client.post("/api/accounts/admin/suspend", json={}).status_code, 403)
 
 
 if __name__ == "__main__":
