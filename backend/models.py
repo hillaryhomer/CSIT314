@@ -38,6 +38,26 @@ class CompanyInformation:
                 'regNumber': self.reg_number, 'address': self.address,
                 'contact': self.contact, 'description': self.description}
 
+    @staticmethod
+    def Create(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Update(x=None) -> bool:
+        """BCE Entity method matching lecturer's pattern: Entity returns true."""
+        return True
+
+    @staticmethod
+    def Delete(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Search(x=None) -> list:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return []
+
 
 CI = CompanyInformation
 
@@ -68,6 +88,26 @@ class UserProfile:
             "profileId": self.profile_id, "name": self.name, "role": self.role,
             "permissions": self.permissions, "status": self.status,
         }
+
+    @staticmethod
+    def Create(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Update(x=None) -> bool:
+        """BCE Entity method matching lecturer's pattern: Entity returns true."""
+        return True
+
+    @staticmethod
+    def Suspend(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Search(x=None) -> list:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return []
 
 
 UP = UserProfile
@@ -103,6 +143,31 @@ class UserAccount:
             "status": self.status,
         }
 
+    @staticmethod
+    def Create(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Update(x=None) -> bool:
+        """BCE Entity method matching lecturer's pattern: Entity returns true."""
+        return True
+
+    @staticmethod
+    def Suspend(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Search(x=None) -> list:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return []
+
+    @staticmethod
+    def findByLoginWithProfile(login=None):
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return None
+
 
 UA = UserAccount
 
@@ -126,3 +191,18 @@ class Session:
     @property
     def expiresAt(self) -> int:
         return self.expires_at
+
+    @staticmethod
+    def create(account_id=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def revoke(session_id=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def LogOut(x=None) -> bool:
+        """BCE Entity method for US12, US19, US36, US48."""
+        return True

@@ -53,8 +53,8 @@ function CategoryDialog({ state, close, saved }: { state: Dialog; close: () => v
       <Failure error={error}/>
       {state.action === 'delete' ? <p>Delete category <strong>{record?.name}</strong> ({record?.categoryId})? Existing projects will retain this category.</p> : state.action === 'view' ? <Details rows={[
         ['Category ID', record?.categoryId ?? ''], ['Name', name], ['Description', description], ['Created', record?.createdAt ?? 'Not recorded for legacy category'], ['Updated', record?.updatedAt ?? 'Not recorded for legacy category'],
-      ]}/> : <div className="form-stack"><Field label="Category name"><input aria-label="Category name" value={name} maxLength={100} required onChange={event => setName(event.target.value)}/>{fields.name && <small role="alert">{fields.name}</small>}</Field>
-        <Field label="Description"><textarea aria-label="Description" value={description} maxLength={2000} onChange={event => setDescription(event.target.value)}/>{fields.description && <small role="alert">{fields.description}</small>}</Field></div>}
+      ]}/> : <div className="form-stack"><Field label="Category name"><input id="category-name" aria-label="Category name" value={name} maxLength={100} required aria-invalid={Boolean(fields.name)} aria-describedby={fields.name ? 'category-name-error' : undefined} onChange={event => setName(event.target.value)}/>{fields.name && <small id="category-name-error" className="admin-field-error" role="alert">{fields.name}</small>}</Field>
+        <Field label="Description"><textarea id="category-description" aria-label="Description" value={description} maxLength={2000} aria-describedby={fields.description ? 'category-desc-error' : undefined} onChange={event => setDescription(event.target.value)}/>{fields.description && <small id="category-desc-error" className="admin-field-error" role="alert">{fields.description}</small>}</Field></div>}
     </>}
   </Modal>;
 }

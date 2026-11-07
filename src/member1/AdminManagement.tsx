@@ -120,6 +120,10 @@ function AdminRecordDialog({ module, state, close, saved }: {
   const changeProfile = <K extends keyof ProfileInput,>(key: K, value: ProfileInput[K]): void => setProfileForm(current => ({ ...current, [key]: value }));
   async function submit(): Promise<void> {
     if (inFlight.current) return;
+    if (profilesModule && state.action !== 'Suspend' && profileForm.permissions.length === 0) {
+      setSaveError(new ApiClientError({ code: 'VALIDATION', message: 'Select at least one supported permission.', fields: { permissions: 'Select at least one supported permission.' } }));
+      return;
+    }
     inFlight.current = true; setSaving(true); setSaveError(null);
     try {
       if (state.action === 'Suspend') { if (profilesModule) await member1Api.suspendProfile(state.recordId!); else await member1Api.suspendAccount(state.recordId!); }

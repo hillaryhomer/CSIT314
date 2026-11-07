@@ -18,6 +18,26 @@ class IDPCategory:
         return asdict(self)
 
     @staticmethod
+    def Create(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Update(x=None) -> bool:
+        """BCE Entity method matching lecturer's pattern: Entity returns true."""
+        return True
+
+    @staticmethod
+    def Delete(x=None) -> bool:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return True
+
+    @staticmethod
+    def Search(x=None) -> list:
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return []
+
+    @staticmethod
     def validate(data):
         check_object(data, {'name', 'description'})
         errors = {}

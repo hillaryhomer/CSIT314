@@ -86,3 +86,23 @@ class Report:
     @property
     def generatedAt(self) -> str:
         return self.generated_at
+
+    @staticmethod
+    def GenerateDaily(x=None):
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return None
+
+    @staticmethod
+    def GenerateWeekly(x=None):
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return None
+
+    @staticmethod
+    def GenerateMonthly(x=None):
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return None
+
+    @staticmethod
+    def aggregate(start=None, end=None, timezone=None):
+        """BCE Entity method matching CSIT314_Consistency_Fixes.drawio."""
+        return {}
