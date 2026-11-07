@@ -22,7 +22,7 @@ export function SaveFavouriteButton({ project, onSaved, go }: { project: Custome
   const pending = useRef(false);
   if (loading) return <span role="status">Checking sign-in…</span>;
   if (!session) return <Button onClick={() => go('/login')}>Log in to save</Button>;
-  if (session.role !== 'customer' || !session.permissions.includes('projects:discover')) return <small>A customer account with discovery access is required to save.</small>;
+  if (session.role !== 'customer' || !session.permissions.includes('projects:discover')) return <small className="favourite-restricted">Sign in as Customer to save</small>;
   return <div className="favourite-action"><Button kind={project.saved ? '' : 'primary'} disabled={busy || project.saved} onClick={async () => {
     if (pending.current || project.saved) return;
     pending.current = true; setBusy(true); setError(null); setMessage('');
@@ -32,7 +32,7 @@ export function SaveFavouriteButton({ project, onSaved, go }: { project: Custome
     } catch (failure) { setError(failure); }
     finally { pending.current = false; setBusy(false); }
   }}>{busy ? 'Saving…' : project.saved ? 'Saved' : 'Add to Favourites'}</Button>
-    <Failure error={error}/>{message && <small role="status">{message}</small>}
+    <Failure error={error}/>{message && <small className="favourite-status-msg" role="status">{message}</small>}
   </div>;
 }
 
@@ -62,7 +62,13 @@ export function CustomerDetailDialog({ id, go, onClose, onSaved }: { id: string;
 function CustomerProjectCard({ project, go, open, onSaved }: { project: CustomerProject; open: () => void; onSaved: (p: CustomerProject) => void } & Navigation) {
   return <article className="project-card"><div className="card-image"><button className="image-open" aria-label={`View ${project.title}`} onClick={open}><img src={project.images[0]?.url ?? placeholderImage} alt={project.images.length ? project.title : 'Project image placeholder'}/></button><span className="image-label">{project.status}</span></div>
     <div className="card-content"><div className="card-meta"><span>{project.categoryName}</span><span>{project.style}</span></div><button className="card-title" onClick={open}>{project.title}</button><p>{project.description}</p><div className="studio-row">{project.companyName ?? project.designerName}</div>
-      <div className="card-bottom"><Badge>{project.status}</Badge><Button onClick={open}>View Details</Button></div><SaveFavouriteButton project={project} go={go} onSaved={onSaved}/>
+      <div className="card-bottom">
+        <Badge>{project.status}</Badge>
+        <div className="card-actions">
+          <Button onClick={open}>View Details</Button>
+          <SaveFavouriteButton project={project} go={go} onSaved={onSaved}/>
+        </div>
+      </div>
     </div></article>;
 }
 

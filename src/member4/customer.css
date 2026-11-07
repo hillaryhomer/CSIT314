@@ -1,8 +1,53 @@
 .customer-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(130px,1fr) minmax(130px,1fr) auto;gap:14px;align-items:end;margin-bottom:24px}
-.customer-filters .search-row{margin-bottom:0}.customer-filters .search-box{min-width:0}
-.favourite-action{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:12px}
-.favourite-action .admin-error{max-width:100%;overflow-wrap:anywhere}
+.customer-filters .search-row{margin-bottom:0}
+.customer-filters .search-box{min-width:0}
+
+/* Project card flex layout and uniform height */
+.project-card{display:flex;flex-direction:column;height:100%;border-radius:14px}
+.project-card .card-content{display:flex;flex-direction:column;flex:1;padding:16px 20px 20px}
 .project-card .card-title,.project-card .card-content>p{overflow-wrap:anywhere}
-.favourites-page>.project-grid{margin-top:24px}.project-card .card-content>small{display:block;margin-top:10px}
+.project-card .card-content>p{flex:1;margin:8px 0 14px;color:#756a5c;font-size:12px;line-height:1.6}
+.project-card .studio-row{font-size:11px;font-weight:600;color:#5a4f43;margin-bottom:14px}
+
+/* Card bottom footer with status badge on left and actions on right */
+.project-card .card-bottom{border-top:1px solid #eee7dc;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px;font-size:11px}
+.project-card .card-actions{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+
+/* Styled buttons for View Details and Save Favourite */
+.project-card .card-bottom button.button{
+  margin-left:0;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:600;
+  padding:7px 14px;
+  border:1px solid #dcd4c8;
+  background:#fff;
+  color:var(--ink);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1.4;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.project-card .card-bottom button.button:hover{background:#f5eee4;border-color:#baa48b}
+.project-card .card-bottom button.button.primary{background:var(--brown);border-color:var(--brown);color:#fffaf2}
+.project-card .card-bottom button.button.primary:hover{background:#705235;border-color:#705235}
+.project-card .card-bottom button.button:disabled{background:#f2ebe0;border-color:#ded4c5;color:#8f8273;cursor:not-allowed;opacity:.9}
+
+.project-card .favourite-action{display:inline-flex;flex-direction:column;align-items:flex-end;margin:0}
+.project-card .favourite-action .admin-error{max-width:100%;overflow-wrap:anywhere}
+.favourite-status-msg{font-size:11px;color:#55723b;font-weight:600;margin-top:4px}
+.favourite-restricted{font-size:11px;color:var(--muted);padding:4px 0}
+
+.favourites-page>.project-grid{margin-top:24px}
+.project-card .card-content>small{display:block;margin-top:10px}
+
 @media(max-width:1000px){.customer-filters{grid-template-columns:1fr 1fr}.customer-filters>.search-row{grid-column:1/-1}}
-@media(max-width:600px){.customer-filters{grid-template-columns:minmax(0,1fr)}.customer-filters>.search-row{grid-column:auto}.customer-filters>.button{width:100%}}
+@media(max-width:600px){
+  .customer-filters{grid-template-columns:minmax(0,1fr)}.customer-filters>.search-row{grid-column:auto}.customer-filters>.button{width:100%}
+  .project-card .card-bottom{flex-direction:column;align-items:stretch}
+  .project-card .card-actions{width:100%;justify-content:stretch;margin-left:0}
+  .project-card .card-actions>button.button,.project-card .favourite-action{flex:1}
+  .project-card .favourite-action>button.button{width:100%}
+}
