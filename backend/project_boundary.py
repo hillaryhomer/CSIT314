@@ -8,6 +8,7 @@ from backend.project_controllers import (
     DeleteCurrentIDPController, SearchCurrentIDPController,
     CreatePastIDPController, ViewPastIDPController, UpdatePastIDPController,
     DeletePastIDPController, SearchPastIDPController, CustomerProjectController,
+    SearchIDPC,
 )
 
 
@@ -24,7 +25,11 @@ def register_project_routes(app, repository):
 
     @app.get('/api/designer/projects/<kind>')
     def search_projects(kind):
-        return jsonify(controller(kind, 4).execute(request.args.get('q', '')))
+        # US24 & US29 in CSIT314_Consistency_Fixes: boundary supplies status filter to shared SearchIDPC
+        if kind not in ('current', 'past'):
+            raise AppError('NOT_FOUND', 'Project collection was not found.')
+        status = 'Current' if kind == 'current' else 'Past'
+        return jsonify(SearchIDPC(repository(), g.actor_id).execute(request.args.get('q', ''), status=status))
 
     @app.post('/api/designer/projects/<kind>')
     def create_project(kind):

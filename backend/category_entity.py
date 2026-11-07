@@ -29,3 +29,7 @@ class IDPCategory:
         if errors:
             raise AppError('VALIDATION', 'Please correct the category fields.', errors)
         return name, description
+
+
+# Alias matching CSIT314 and CSIT314_Consistency_Fixes diagram notations
+IDPC = IDPCategory

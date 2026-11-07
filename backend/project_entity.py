@@ -15,8 +15,37 @@ class InteriorDesignProject:
     created_at: str
     updated_at: str
 
+    @property
+    def designerId(self) -> str:
+        return self.owner_account_id
+
+    @property
+    def designer_id(self) -> str:
+        return self.owner_account_id
+
+    @property
+    def projectId(self) -> str:
+        return self.project_id
+
+    @property
+    def categoryId(self) -> str:
+        return self.category_id
+
+    @property
+    def createdAt(self) -> str:
+        return self.created_at
+
+    @property
+    def updatedAt(self) -> str:
+        return self.updated_at
+
     def to_dict(self):
         return dict(projectId=self.project_id, ownerAccountId=self.owner_account_id,
+                    designerId=self.owner_account_id,
                     companyId=self.company_id, title=self.title, description=self.description,
                     categoryId=self.category_id, style=self.style, status=self.status,
                     createdAt=self.created_at, updatedAt=self.updated_at)
+
+
+# Alias matching CSIT314 and CSIT314_Consistency_Fixes diagram notations
+IDP = InteriorDesignProject

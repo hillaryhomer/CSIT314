@@ -118,3 +118,41 @@ class CompanyController(Controller):
                 raise AppError('NOT_FOUND', 'Company was not found.')
             Member2Repository(self.repository).delete_company(company_id, owner)
         return {'deleted': True}
+
+
+# BCE Aliases and Controllers matching CSIT314 diagram notations
+SuspendUAC = SuspendUserAccountController
+SearchUAC = SearchUserAccountController
+LogInUAC = LoginController
+
+
+class LogOutSessionC(Controller):
+    """US12, US19, US36, US48: Log Out Platform Session BCE Control."""
+    def execute(self, session_token=''):
+        Member2Repository(self.repository).remove_session(session_token)
+        return {'loggedOut': True}
+
+
+class CreateCIC(CompanyController):
+    """US13: Create Company Information BCE Control."""
+    def execute(self, data): return self.create(data)
+
+
+class ViewCIC(CompanyController):
+    """US14: View Company Information BCE Control."""
+    def execute(self, query=''): return self.view(query)
+
+
+class UpdateCIC(CompanyController):
+    """US15: Update Company Information BCE Control."""
+    def execute(self, company_id, data): return self.update(company_id, data)
+
+
+class DeleteCIC(CompanyController):
+    """US16: Delete Company Information BCE Control."""
+    def execute(self, company_id): return self.delete(company_id)
+
+
+class SearchCIC(CompanyController):
+    """US17: Search Company Information BCE Control."""
+    def execute(self, query=''): return self.view(query)

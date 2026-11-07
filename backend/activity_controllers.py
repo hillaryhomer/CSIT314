@@ -40,3 +40,8 @@ class RecordIDPViewController(Controller):
             created = ActivityRepository(self.repository).record(ProjectView(
                 project_id, event_id, datetime.now(timezone.utc).isoformat()))
         return {'project': project, 'recorded': created}
+
+
+# BCE Aliases matching CSIT314 diagram notations
+ViewPVCountsC = ViewIDPViewsController
+ViewFAVCountsC = ViewIDPShortlistsController

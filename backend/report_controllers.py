@@ -18,3 +18,9 @@ class GenerateWeeklyReportController(GenerateDailyReportController):
 
 class GenerateMonthlyReportController(GenerateDailyReportController):
     kind = 'monthly'
+
+
+# BCE Aliases matching CSIT314 diagram notations
+GenerateDailyReportC = GenerateDailyReportController
+GenerateWeeklyReportC = GenerateWeeklyReportController
+GenerateMonthlyReportC = GenerateMonthlyReportController

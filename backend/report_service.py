@@ -65,3 +65,24 @@ class ReportService:
                 'metrics': {'projectsCreated': counts.get('project_created', 0), 'viewEvents': counts.get('project_view', 0)},
                 'coverage': {'retainedSince': retained_since, 'complete': start >= utc_timestamp(retained_since),
                     'note': 'Before retention began, only surviving project/view records could be imported; deleted activity and visits before view tracking are unavailable.'}}
+
+
+@dataclass
+class Report:
+    """Report entity matching Class Model 2 in CSIT314_Consistency_Fixes.drawio."""
+    period_start: str
+    period_end: str
+    generated_at: str
+    metrics: dict
+
+    @property
+    def periodStart(self) -> str:
+        return self.period_start
+
+    @property
+    def periodEnd(self) -> str:
+        return self.period_end
+
+    @property
+    def generatedAt(self) -> str:
+        return self.generated_at

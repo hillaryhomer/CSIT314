@@ -66,3 +66,11 @@ class DeleteIDPCategoryController(ManagerController):
             now = datetime.now(timezone.utc).isoformat()
             CategoryRepository(self.repository).save(replace(current, status='Suspended', deletedAt=now, updatedAt=now))
         return {'deleted': True, 'categoryId': category_id}
+
+
+# BCE Aliases matching CSIT314 diagram notations
+CreateIDPCC = CreateIDPCategoryController
+ViewIDPCC = ViewIDPCategoryController
+UpdateIDPCC = UpdateIDPCategoryController
+DeleteIDPCC = DeleteIDPCategoryController
+SearchIDPCC = SearchIDPCategoryController

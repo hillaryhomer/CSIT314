@@ -56,6 +56,25 @@ class ViewIDPController(CustomerController):
 
 
 class AddFavouriteController(CustomerController):
+    """US32 Add Favourite IDP from CSIT314_Consistency_Fixes.drawio."""
+    def add_favourite(self, customer_id, project_id):
+        # 3. findPublishedById(projectId)
+        project = ProjectRepository(self.repository).find(project_id, public=True)
+        if project is None:
+            raise AppError('NOT_FOUND', 'Project was not found or is no longer available.')
+        store = FavouriteRepository(self.repository)
+        # 5. exists(customerId, projectId)
+        already_saved = store.exists(customer_id, project_id)
+        created = False
+        if not already_saved:
+            # 7. [not exists] Add(FAV x)
+            created = store.add(Favourite(customer_id, project_id, datetime.now(timezone.utc).isoformat()))
+        favourite = store.find(customer_id, project_id)
+        result = {**ProjectRepository.public_projection(project), 'saved': True, 'savedAt': favourite.created_at}
+        return {'project': result, 'saved': True, 'created': created}
+
+    addFavourite = add_favourite
+
     def execute(self, data):
         check_object(data, {'projectId'})
         project_id = clean(data.get('projectId'))
@@ -63,14 +82,7 @@ class AddFavouriteController(CustomerController):
             raise AppError('VALIDATION', 'Choose a valid project.', {'projectId': 'A project ID is required.'})
         with self.repository.transaction():
             customer_id = self.require_customer()
-            project = ProjectRepository(self.repository).find(project_id, public=True)
-            if project is None:
-                raise AppError('NOT_FOUND', 'Project was not found or is no longer available.')
-            store = FavouriteRepository(self.repository)
-            created = store.add(Favourite(customer_id, project_id, datetime.now(timezone.utc).isoformat()))
-            favourite = store.find(customer_id, project_id)
-            result = {**ProjectRepository.public_projection(project), 'saved': True, 'savedAt': favourite.created_at}
-        return {'project': result, 'saved': True, 'created': created}
+            return self.add_favourite(customer_id, project_id)
 
 
 class ViewFavouriteListController(CustomerController):
@@ -86,3 +98,10 @@ class SearchFavouriteListController(CustomerController):
         query, _, _ = search_values(query)
         projects = ProjectRepository(self.repository).search(query=query, public=True, favourite_customer=customer_id)
         return self.public_records(projects, customer_id)
+
+
+# BCE Aliases matching CSIT314 and CSIT314_Consistency_Fixes diagram notations
+ViewIDPDetailsC = ViewIDPController
+AddFAVC = AddFavouriteController
+ViewFAVListC = ViewFavouriteListController
+SearchFAVListC = SearchFavouriteListController

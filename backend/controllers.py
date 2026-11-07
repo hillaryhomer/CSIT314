@@ -167,3 +167,14 @@ class UpdateUserAccountController(Controller):
                                   status=current.status, **values)
             self.repository.update_account(account)
         return account.to_dict(profile)
+
+
+# BCE Aliases matching CSIT314 diagram notations
+CreateUPC = CreateUserProfileController
+ViewUPC = ViewUserProfileController
+UpdateUPC = UpdateUserProfileController
+SuspendUPC = SuspendUserProfileController
+SearchUPC = SearchUserProfileController
+CreateUAC = CreateUserAccountController
+ViewUAC = ViewUserAccountController
+UpdateUAC = UpdateUserAccountController

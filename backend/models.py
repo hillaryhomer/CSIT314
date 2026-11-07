@@ -20,10 +20,26 @@ class CompanyInformation:
     contact: str
     description: str
 
+    @property
+    def companyId(self) -> str:
+        return self.company_id
+
+    @property
+    def designerId(self) -> str:
+        return self.owner_id
+
+    @property
+    def designer_id(self) -> str:
+        return self.owner_id
+
     def to_dict(self) -> dict:
-        return {'companyId': self.company_id, 'ownerId': self.owner_id, 'name': self.name,
+        return {'companyId': self.company_id, 'ownerId': self.owner_id,
+                'designerId': self.owner_id, 'name': self.name,
                 'regNumber': self.reg_number, 'address': self.address,
                 'contact': self.contact, 'description': self.description}
+
+
+CI = CompanyInformation
 
 
 class AppError(Exception):
@@ -42,12 +58,19 @@ class UserProfile:
     permissions: list[str]
     status: str = "Active"
 
+    @property
+    def profileId(self) -> str:
+        return self.profile_id
+
     def to_dict(self) -> dict:
         # Keep the key names unchanged so the existing frontend requires no rewrite.
         return {
             "profileId": self.profile_id, "name": self.name, "role": self.role,
             "permissions": self.permissions, "status": self.status,
         }
+
+
+UP = UserProfile
 
 
 @dataclass
@@ -59,6 +82,18 @@ class UserAccount:
     profile_id: str
     status: str = "Active"
 
+    @property
+    def accountId(self) -> str:
+        return self.account_id
+
+    @property
+    def profileId(self) -> str:
+        return self.profile_id
+
+    @property
+    def passwordHash(self) -> str:
+        return self.password_hash
+
     def to_dict(self, profile: UserProfile) -> dict:
         # Intentionally exclude passwords and password hashes from API responses.
         return {
@@ -67,3 +102,27 @@ class UserAccount:
             "profileName": profile.name, "profileStatus": profile.status,
             "status": self.status,
         }
+
+
+UA = UserAccount
+
+
+@dataclass
+class Session:
+    """Session entity matching Class Model 1 in CSIT314_Consistency_Fixes.drawio."""
+    session_id: str
+    account_id: str
+    expires_at: int
+    revoked: bool = False
+
+    @property
+    def sessionId(self) -> str:
+        return self.session_id
+
+    @property
+    def accountId(self) -> str:
+        return self.account_id
+
+    @property
+    def expiresAt(self) -> int:
+        return self.expires_at

@@ -88,9 +88,21 @@ class DeleteCurrentIDPController(ProjectController):
     status = 'Current'
     def execute(self, project_id): return self.remove(project_id)
 
-class SearchCurrentIDPController(ProjectController):
+class SearchIDPC(ProjectController):
+    """US24 & US29: Shared IDP search controller from CSIT314_Consistency_Fixes.drawio.
+    Applies the Current/Past status filter supplied by the boundary."""
+    def execute(self, query='', status=None):
+        if status is not None:
+            self.status = status
+        return self.list(query)
+
+# Aliases for diagram and legacy compatibility
+SearchIDPController = SearchIDPC
+
+class SearchCurrentIDPController(SearchIDPC):
     status = 'Current'
-    def execute(self, query=''): return self.list(query)
+    def execute(self, query='', status=None):
+        return super().execute(query=query, status=status or 'Current')
 
 class CreatePastIDPController(ProjectController):
     status = 'Past'
@@ -108,9 +120,21 @@ class DeletePastIDPController(ProjectController):
     status = 'Past'
     def execute(self, project_id): return self.remove(project_id)
 
-class SearchPastIDPController(ProjectController):
+class SearchPastIDPController(SearchIDPC):
     status = 'Past'
-    def execute(self, query=''): return self.list(query)
+    def execute(self, query='', status=None):
+        return super().execute(query=query, status=status or 'Past')
+
+
+# BCE Aliases matching CSIT314 and CSIT314_Consistency_Fixes diagram notations
+CreateCurrentIDPC = CreateCurrentIDPController
+ViewCurrentIDPC = ViewCurrentIDPController
+UpdateCurrentIDPC = UpdateCurrentIDPController
+DeleteCurrentIDPC = DeleteCurrentIDPController
+CreatePastIDPC = CreatePastIDPController
+ViewPastIDPC = ViewPastIDPController
+UpdatePastIDPC = UpdatePastIDPController
+DeletePastIDPC = DeletePastIDPController
 
 
 class CustomerProjectController(Controller):
