@@ -61,9 +61,9 @@ def validate_account(data: dict, creating: bool = False) -> dict:
         errors["profileId"] = "Choose an existing active profile."
     if creating:
         password = data.get("password")
-        if (not isinstance(password, str) or len(password) < 12
+        if (not isinstance(password, str) or len(password) < 6
                 or len(password.encode("utf-8")) > 72 or not password.strip()):
-            errors["password"] = "Use at least 12 characters and at most 72 UTF-8 bytes; whitespace-only passwords are not allowed."
+            errors["password"] = "Use at least 6 characters and at most 72 UTF-8 bytes; whitespace-only passwords are not allowed."
     check_errors(errors)
     return {"username": username, "email": email, "profile_id": profile_id}
 

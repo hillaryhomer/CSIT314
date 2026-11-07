@@ -298,7 +298,7 @@ def main():
         try:
             username = input('Admin username: ')
             email = input('Admin email: ')
-            password = getpass('Password (12+ characters): ')
+            password = getpass('Password (6+ characters): ')
             if password != getpass('Confirm password: '):
                 parser.error('Passwords do not match.')
             profile_id = 'UP-' + str(uuid4())
