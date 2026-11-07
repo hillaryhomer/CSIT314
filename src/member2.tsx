@@ -17,7 +17,16 @@ export async function api<T>(path: string, method = 'GET', body?: unknown, signa
     if (error instanceof Error && error.name === 'AbortError') throw error;
     throw new RequestError('Could not reach the server. Please retry.');
   }
-  const data = await response.json().catch(() => { throw new RequestError('The server returned an unreadable response.'); });
+  const contentType = response.headers.get('content-type') ?? '';
+  let data: any;
+  try {
+    data = await response.json();
+  } catch {
+    if (!response.ok || contentType.includes('text/html')) {
+      throw new RequestError('Backend server is unreachable or not running on port 3001. Please run: python -m backend.app');
+    }
+    throw new RequestError('The server returned an unreadable response.');
+  }
   if (!response.ok) {
     if (!['/auth/session', '/auth/login'].includes(path) && (response.status === 401 || data.error?.message?.includes('assigned profile cannot access'))) window.dispatchEvent(new Event('session-ended'));
     throw new RequestError(data.error?.message ?? 'The request failed.', data.error?.fields, data.error?.code);

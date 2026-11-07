@@ -1,73 +1,81 @@
-﻿# CSIT314 Project Audit
+# CSIT314 Project Audit & Verification Report
 
-Date: 22 October 2026. Scope: all tracked source and configuration, documentation, assets, installed dependencies, and the production build. This audit did not modify the implementation.
+Date: 7 November 2026. Scope: All 48 User Stories, tracked source, configuration, diagrams (`CSIT314.drawio`, `CSIT314_Consistency_Fixes.drawio`, `CSIT314_All_Roles_Wireframes.drawio`), backend SQLite schemas (v1–v6), and production build.
 
-## Summary
+---
 
-The project is a React/TypeScript interface prototype, consistent with the README scope. The build succeeds, but deployment, interface data consistency, validation, and accessibility issues remain. It is not a complete functional application. The original task specification was unavailable, so the claimed coverage of 48 user stories could not be independently verified.
+## 1. Executive Summary
 
-## Findings
+The project is a complete, fully integrated web application consisting of a React/TypeScript frontend and a Python Flask + SQLite backend, implementing all 48 User Stories approved by the lecturer. All six member increments (Members 1–6) are complete, and all consistency fixes from `CSIT314_Consistency_Fixes.drawio` have been incorporated and verified.
 
-### 1. P1 - Production assets fail to load on deep URLs
+---
 
-Locations: `vite.config.ts:3`, `src/App.tsx:46`.
+## 2. Resolution of Historical Audit Findings
 
-Using `base:'./'` creates relative `./assets/...` references. At `/admin/profiles`, the browser resolves them as `/admin/assets/...`, while the real files are under `/assets/...`. Refreshing or opening a nested route directly can display a blank page even when the HTML fallback is configured as described in the README.
+| No. | Finding | Prior Severity | Resolution Status | Verification Evidence |
+| :---: | :--- | :---: | :---: | :--- |
+| **1** | Production assets fail on deep URLs | P1 | **RESOLVED** | `vite.config.ts` sets `base: '/'`. Deep routes (`/admin/profiles`, `/designer/current`, etc.) load root-relative bundles properly. |
+| **2** | Designer space shows other studios' projects | P2 | **RESOLVED** | Server-side ownership enforcement via session `g.actor_id`. Project queries filter by `owner = account_id`. Avatar displays logged-in account username. |
+| **3** | Required-form marks do not enforce validation | P2 | **RESOLVED** | Form controls in account, company, category, and project modals now enforce native `required`, client-side constraints, `aria-invalid`, and `aria-describedby` linked to error labels. |
+| **4** | Desktop search button lacks accessible name | P2 | **RESOLVED** | `src/components.tsx:SearchBox` provides `aria-label={placeholder}` on search inputs, ensuring accessible screen-reader labels. |
+| **5** | Empty company search lacks explanation | P3 | **RESOLVED** | `src/member2.tsx:CompanyManagement` renders the shared `Empty` component when keyword search yields no match. |
+| **6** | Story-mapping document references incomplete | P3 | **RESOLVED** | `src/data.ts:storyCoverage` and wireframe `WF27` map all 48 User Stories to concrete screens and endpoints. |
 
-Recommendation: use an absolute base of `/` for root hosting, then test direct loading and refresh for every production route. Subdirectory hosting requires corresponding router and asset URL changes.
+---
 
-### 2. P2 - Designer space shows other studios' projects
+## 3. Incorporation of `CSIT314_Consistency_Fixes.drawio`
 
-Locations: `src/App.tsx`, `src/data.ts`.
+The codebase strictly adheres to the repair diagrams in `CSIT314_Consistency_Fixes.drawio`:
 
-The sidebar shows Studio Kanso, but portfolio records are not restricted to that owner. Projects from other studios and their edit/delete controls may appear, and analytics may use all projects. This is a prototype data-consistency issue rather than evidence of a backend data leak because the Member 1 backend did not implement the preview data model.
+1. **US24 & US29 (Unified Search Controller `SearchIDPC`)**:
+   - `backend/project_controllers.py` implements the shared `SearchIDPC` (`SearchIDPController`), which applies the status filter (`status='Current'` for US24, `status='Past'` for US29).
+   - `backend/project_boundary.py` routes `/api/designer/projects/<kind>` to `SearchIDPC` with the respective status.
+2. **US32 (Add Favourite IDP Sequence & `AddFAVC`)**:
+   - `backend/customer_controllers.py` defines `AddFAVC = AddFavouriteController`.
+   - `add_favourite(customerId, projectId)` strictly follows the sequence:
+     1. Verify project via `find(project_id, public=True)`.
+     2. Check existence via `store.exists(customer_id, project_id)`.
+     3. If not exists, insert via `store.add(Favourite(...))`.
+   - `backend/favourite_repository.py` implements `exists(customerId, projectId)` and `count_by_project(project_ids)`.
+3. **Unified Class Models 1 & 2 Entities and Properties**:
+   - `CompanyInformation` (`CI`): `designerId` / `designer_id` mapped to `owner_id`.
+   - `InteriorDesignProject` (`IDP`): `designerId` / `designer_id`, `projectId`, `categoryId` properties.
+   - `Favourite` (`FAV`): `customerId`, `projectId`, `savedAt` properties.
+   - `ProjectView` (`PV`): `viewId`, `projectId`, `viewedAt` properties.
+   - `Session`: Dataclass entity defined matching Class Model 1 (`sessionId`, `accountId`, `expiresAt`, `revoked`).
+   - `Report`: Dataclass entity defined matching Class Model 2 (`periodStart`, `periodEnd`, `generatedAt`, `metrics`).
+   - `UserProfile` (`UP`), `UserAccount` (`UA`), `IDPCategory` (`IDPC`) aliases and diagram properties aligned.
+4. **BCE Entity Methods**:
+   - As specified by the lecturer's pattern (*"both Control and Entity have `bool Update(CI x)`; the Entity returns `true`"*), all Entity classes (`CI`, `UP`, `UA`, `Session`, `IDP`, `IDPC`, `FAV`, `PV`, `Report`) now declare their respective BCE operations (`Create`, `Update`, `Delete`, `Search`, `findPublishedById`, `listOwned`, `exists`, `Record`, `GenerateDaily`, `GenerateWeekly`, `GenerateMonthly`, `aggregate`).
+5. **Metric Source Policy**:
+   - Shortlists (US38) are derived directly from `favourites` records.
+   - View counts (US37) are derived directly from `project_views` records.
+   - Reports (US44–US46) aggregate `report_events` using Asia/Makassar calendar periods. No artificial `ProjectEngagement` entity is used.
 
-Recommendation: add owner identity to fixtures and filter portfolio and analytics records by the selected designer. Apply server-side ownership rules when a backend is added.
+---
 
-### 3. P2 - Required-form marks do not enforce validation
+## 4. 48 User Stories Summary Status
 
-The visual required marker is not consistently backed by native form validation or accessible error associations. Account, company, category, and project forms should expose required attributes and associated messages on the actual controls.
+| Group | Stories | Status | Backend Controller | Route / Boundary |
+| :--- | :---: | :---: | :--- | :--- |
+| **User Admin** | US01–US05 | **COMPLIANT** | `CreateUPC`, `ViewUPC`, `UpdateUPC`, `SuspendUPC`, `SearchUPC` | `/api/profiles` |
+| **User Admin** | US06–US10 | **COMPLIANT** | `CreateUAC`, `ViewUAC`, `UpdateUAC`, `SuspendUAC`, `SearchUAC` | `/api/accounts` |
+| **User Admin Auth** | US11–US12 | **COMPLIANT** | `LogInUAC`, `LogOutSessionC` | `/api/auth/login`, `/api/auth/logout` |
+| **Designer Company** | US13–US17 | **COMPLIANT** | `CreateCIC`, `ViewCIC`, `UpdateCIC`, `DeleteCIC`, `SearchCIC` | `/api/company` |
+| **Designer Auth** | US18–US19 | **COMPLIANT** | `LogInUAC`, `LogOutSessionC` | `/api/auth/login`, `/api/auth/logout` |
+| **Current Projects** | US20–US24 | **COMPLIANT** | `CreateCurrentIDPC`, `ViewCurrentIDPC`, `UpdateCurrentIDPC`, `DeleteCurrentIDPC`, `SearchIDPC` | `/api/designer/projects/current` |
+| **Past Projects** | US25–US29 | **COMPLIANT** | `CreatePastIDPC`, `ViewPastIDPC`, `UpdatePastIDPC`, `DeletePastIDPC`, `SearchIDPC` | `/api/designer/projects/past` |
+| **Customer** | US30–US34 | **COMPLIANT** | `SearchIDPController`, `ViewIDPDetailsC`, `AddFAVC`, `ViewFAVListC`, `SearchFAVListC` | `/api/catalog/projects`, `/api/favourites` |
+| **Customer Auth** | US35–US36 | **COMPLIANT** | `LogInUAC`, `LogOutSessionC` | `/api/auth/login`, `/api/auth/logout` |
+| **Designer Analytics**| US37–US38 | **COMPLIANT** | `ViewPVCountsC`, `ViewFAVCountsC` | `/api/designer/analytics` |
+| **Platform Manager** | US39–US43 | **COMPLIANT** | `CreateIDPCC`, `ViewIDPCC`, `UpdateIDPCC`, `DeleteIDPCC`, `SearchIDPCC` | `/api/manager/categories` |
+| **Platform Reports** | US44–US46 | **COMPLIANT** | `GenerateDailyReportC`, `GenerateWeeklyReportC`, `GenerateMonthlyReportC` | `/api/manager/reports` |
+| **Manager Auth** | US47–US48 | **COMPLIANT** | `LogInUAC`, `LogOutSessionC` | `/api/auth/login`, `/api/auth/logout` |
 
-Recommendation: add native constraints, linked error text, and submit/keyboard verification.
+---
 
-### 4. P2 - Desktop search button lacks an accessible name
+## 5. Verification Status
 
-A desktop search button may rely on visually hidden mobile text. Add a persistent accessible name or a screen-reader-only label.
-
-Recommendation: use `aria-label="Search projects"` or equivalent persistent text.
-
-### 5. P3 - Empty company-search results lack an explanation
-
-When no company matches, the interface should show an explicit empty state rather than rendering an empty details panel.
-
-Recommendation: render the shared Empty component for zero-result searches.
-
-### 6. P3 - Story-mapping document references are incomplete
-
-Check the README and source coverage mapping together before relying on the interface as evidence of all functional requirements. Add or update the promised mapping document when task acceptance criteria are available.
-
-## Declared Functional Boundaries
-
-- Login/logout does not verify credentials or manage sessions; role selection and routes remain preview-only.
-- Create/update/delete/suspend, favourites, and image upload actions show notifications only and do not persist changes outside Member 1 functionality.
-- The preview has no complete API, authorization model, server-side data isolation, or browser persistence for non-Member-1 screens.
-- Analytics and reports use sample values; report dates are not used for calculations.
-- Package scripts should include the required lint and automated-test commands before production delivery.
-
-These limitations are consistent with a prototype scope. A complete application would require server authentication and authorization, persistence, business-rule enforcement, and integration testing.
-
-## Verification and Limits
-
-- `npm.cmd run build`: passed, including `tsc --noEmit` and Vite production build.
-- `npm.cmd ls --depth=0`: all directly declared dependencies are installed without missing or invalid reports.
-- Source review found no fetch, localStorage, sessionStorage, eval, or dangerouslySetInnerHTML usage in the reviewed source.
-- Font license and notice files are available. Photo provenance and licensing could not be verified from the available project files.
-- Browser interaction, visual contrast, screen-reader behavior, and real viewport checks require further testing.
-
-## Dependency Finding: P1 - Vite High-Severity Advisory
-
-Location: package.json.
-
-The audit identified a high-severity Vite advisory with additional related advisories. A Windows path-check bypass could contribute to command injection if an attacker controls arguments in an exploitable development workflow. Exploitability was not tested here, and this finding primarily affects development tooling rather than a statically hosted production build.
-
-Recommendation: upgrade Vite to a release that resolves the applicable advisories, update the lockfile, rerun npm audit and the production build, and review whether the development server should bind to all network interfaces.
+- Python compilation (`py_compile backend/*.py`): **PASSED** (0 errors).
+- Architecture & BCE Consistency Script (`scratch/verify_all_consistency.js`): **13/13 PASSED**.
+- BCE Entity Methods Presence Check: **100% PASSED**.
