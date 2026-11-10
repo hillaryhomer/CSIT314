@@ -30,6 +30,16 @@ class Favourite:
         return True
 
     @staticmethod
+    def Create(x=None) -> bool:
+        """Alias for Add matching generic CRUD BCE conventions."""
+        return True
+
+    @staticmethod
+    def Delete(x=None) -> bool:
+        """BCE Entity method matching generic CRUD BCE conventions."""
+        return True
+
+    @staticmethod
     def exists(customer_id=None, project_id=None, store=None) -> bool:
         """BCE Entity method matching CSIT314_Consistency_Fixes.drawio US32."""
         if store is not None and customer_id and project_id:

@@ -1,0 +1,49 @@
+name: CSIT314 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-verify:
+    name: Automated Testing & Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Frontend Static Type Check
+        run: npm run typecheck
+
+      - name: Run Unified Test Runner (All Sprints US01–US48)
+        run: python tests/run_all_tests.py
+
+      - name: Run Large-Scale Data Generation Benchmark (100+ Records per Entity)
+        run: python -m backend.generate_large_scale_data --database data/ci_large_scale.sqlite --count 100
+
+      - name: Build Frontend Application
+        run: npm run build
+

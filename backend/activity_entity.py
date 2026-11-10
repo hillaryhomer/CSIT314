@@ -34,6 +34,11 @@ class ProjectView:
         return True
 
     @staticmethod
+    def Create(x=None) -> bool:
+        """Alias for Record matching generic CRUD conventions."""
+        return True
+
+    @staticmethod
     def countByProject(project_ids=None, store=None) -> int:
         """BCE Entity method matching CSIT314_Consistency_Fixes.drawio US37."""
         if store is not None and project_ids:

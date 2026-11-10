@@ -27,24 +27,9 @@ def initialize_database(filename: str) -> None:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
         if version > 6:
             raise RuntimeError("Database version is newer than this application.")
-        if version == 0:
+        if version < 6:
             schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
             connection.executescript("BEGIN IMMEDIATE;\n" + schema + "\nCOMMIT;")
-        if version < 2:
-            migration = Path(__file__).with_name("member2.sql").read_text(encoding="utf-8")
-            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
-        if version < 3:
-            migration = Path(__file__).with_name("member3.sql").read_text(encoding="utf-8")
-            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
-        if version < 4:
-            migration = Path(__file__).with_name("member4.sql").read_text(encoding="utf-8")
-            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
-        if version < 5:
-            migration = Path(__file__).with_name("member5.sql").read_text(encoding="utf-8")
-            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
-        if version < 6:
-            migration = Path(__file__).with_name("member6.sql").read_text(encoding="utf-8")
-            connection.executescript("BEGIN IMMEDIATE;\n" + migration + "\nCOMMIT;")
     finally:
         connection.close()
 

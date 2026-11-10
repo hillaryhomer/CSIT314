@@ -206,3 +206,7 @@ class Session:
     def LogOut(x=None) -> bool:
         """BCE Entity method for US12, US19, US36, US48."""
         return True
+
+
+# Export Report entity matching Class Model 2
+from backend.report_service import Report
