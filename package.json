@@ -15,7 +15,7 @@
     "test": "node -e \"const { spawn } = require('child_process'); const py = process.platform === 'win32' && require('fs').existsSync('.venv/Scripts/python.exe') ? '.venv/Scripts/python.exe' : 'python'; spawn(py, ['TestRunner.py'], { stdio: 'inherit' }).on('exit', process.exit);\"",
     "test:unit": "python -m unittest discover -s tests/us -p Us*.py -v",
     "admin:create": "python -m backend.app --create-admin",
-    "db:large-scale": "python -m backend.generate_large_scale_data"
+    "db:large-scale": "node -e \"const { spawn } = require('child_process'); const py = process.platform === 'win32' && require('fs').existsSync('.venv/Scripts/python.exe') ? '.venv/Scripts/python.exe' : 'python'; spawn(py, ['-m', 'backend.generate_large_scale_data'], { stdio: 'inherit' }).on('exit', process.exit);\""
   },
   "dependencies": {
     "lucide-react": "0.575.0",

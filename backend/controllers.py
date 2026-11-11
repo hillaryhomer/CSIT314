@@ -496,6 +496,9 @@ class CustomerCatalogController(Controller):
             raise AppError("FORBIDDEN", "Customer discovery access required.")
         return account.account_id
 
+    def require_customer(self) -> str:
+        return self.customer_actor()
+
     def search_catalog(self, query: str = "", category_id: str = "", style: str = ""):
         customer_id = None
         if self.actor_id:
@@ -590,11 +593,12 @@ class RecordIDPViewController(Controller):
         if not 16 <= len(event_id) <= 100:
             raise AppError("VALIDATION", "Valid analytics event ID required.")
         with self.repository.transaction():
-            if not ProjectRepository(self.repository).find(project_id, public=True):
-                raise AppError("NOT_FOUND", "Project not found.")
+            detail = ViewIDPController(self.repository, self.actor_id)
+            detail.require_customer()
+            project = detail.execute(project_id)
             now = datetime.now(timezone.utc).isoformat()
             recorded = ActivityRepository(self.repository).record(ProjectView(project_id, event_id, now))
-        return {"recorded": recorded}
+        return {"project": project, "recorded": recorded}
 
 
 class ViewAnalyticsController(Controller):
