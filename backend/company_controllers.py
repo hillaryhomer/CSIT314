@@ -1,4 +1,4 @@
-"""Member 2 controllers, sharing Member 1 identities and access rules."""
+"""Company and Authentication controllers for Interior Designer Platform."""
 
 import secrets
 from uuid import uuid4
@@ -6,9 +6,7 @@ from uuid import uuid4
 from backend.controllers import Controller, effective_access
 from backend.models import AppError
 from backend.validation import check_object, clean, normalize, verify_password, hash_password
-
-
-from backend.member2_repository import Member2Repository
+from backend.company_repository import CompanyRepository
 
 
 class LoginController(Controller):
@@ -27,7 +25,7 @@ class LoginController(Controller):
         valid = verify_password(password, account.password_hash if account else LoginController.dummy_hash)
         if not account or not valid:
             raise AppError('UNAUTHENTICATED', 'Incorrect username/email or password.')
-        store = Member2Repository(self.repository)
+        store = CompanyRepository(self.repository)
         with self.repository.transaction():
             _, profile = effective_access(self.repository, account.account_id)
             token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
@@ -56,7 +54,7 @@ class SuspendUserAccountController(Controller):
                 raise AppError('FORBIDDEN', 'You cannot suspend your own account.')
             if account.status == 'Suspended':
                 raise AppError('ALREADY_SUSPENDED', 'This account is already suspended.')
-            Member2Repository(self.repository).suspend_account(account_id)
+            CompanyRepository(self.repository).suspend_account(account_id)
             account.status = 'Suspended'
         return account.to_dict(self.get_profile(account.profile_id))
 
@@ -87,7 +85,7 @@ class CompanyController(Controller):
         owner = self.owner()
         if len(query) > 254:
             raise AppError('VALIDATION', 'Search must contain at most 254 characters.')
-        company = Member2Repository(self.repository).company(owner)
+        company = CompanyRepository(self.repository).company(owner)
         return {'company': company, 'matches': bool(company and normalize(query) in normalize(' '.join(
             company[k] for k in ('name', 'regNumber', 'address', 'contact', 'description'))))}
 
@@ -95,28 +93,28 @@ class CompanyController(Controller):
         values = validate_company(data)
         with self.repository.transaction():
             owner = self.owner()
-            if Member2Repository(self.repository).company(owner):
+            if CompanyRepository(self.repository).company(owner):
                 raise AppError('DUPLICATE', 'You already have company information. Edit the existing company.')
-            Member2Repository(self.repository).create_company('CO-' + str(uuid4()), owner, values)
-        return Member2Repository(self.repository).company(owner)
+            CompanyRepository(self.repository).create_company('CO-' + str(uuid4()), owner, values)
+        return CompanyRepository(self.repository).company(owner)
 
     def update(self, company_id, data):
         values = validate_company(data)
         with self.repository.transaction():
             owner = self.owner()
-            current = Member2Repository(self.repository).company(owner)
+            current = CompanyRepository(self.repository).company(owner)
             if not current or current['companyId'] != company_id:
                 raise AppError('NOT_FOUND', 'Company was not found.')
-            Member2Repository(self.repository).update_company(company_id, owner, values)
-        return Member2Repository(self.repository).company(owner)
+            CompanyRepository(self.repository).update_company(company_id, owner, values)
+        return CompanyRepository(self.repository).company(owner)
 
     def delete(self, company_id):
         with self.repository.transaction():
             owner = self.owner()
-            current = Member2Repository(self.repository).company(owner)
+            current = CompanyRepository(self.repository).company(owner)
             if not current or current['companyId'] != company_id:
                 raise AppError('NOT_FOUND', 'Company was not found.')
-            Member2Repository(self.repository).delete_company(company_id, owner)
+            CompanyRepository(self.repository).delete_company(company_id, owner)
         return {'deleted': True}
 
 
@@ -129,7 +127,7 @@ LogInUAC = LoginController
 class LogOutSessionC(Controller):
     """US12, US19, US36, US48: Log Out Platform Session BCE Control."""
     def execute(self, session_token=''):
-        Member2Repository(self.repository).remove_session(session_token)
+        CompanyRepository(self.repository).remove_session(session_token)
         return {'loggedOut': True}
 
 
@@ -156,3 +154,4 @@ class DeleteCIC(CompanyController):
 class SearchCIC(CompanyController):
     """US17: Search Company Information BCE Control."""
     def execute(self, query=''): return self.view(query)
+

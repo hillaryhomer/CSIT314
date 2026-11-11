@@ -51,7 +51,7 @@ class ViewIDPController(CustomerController):
         project = ProjectRepository(self.repository).find(project_id, public=True)
         if project is None:
             raise AppError('NOT_FOUND', 'Project was not found or is no longer available.')
-        # GET stays side-effect free; Member 5 atomically reads/records authorized detail POSTs.
+        # GET stays side-effect free; view recording is invoked atomically via activity controller.
         return self.public_records([project], self.optional_customer())[0]
 
 

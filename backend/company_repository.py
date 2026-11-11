@@ -1,4 +1,4 @@
-"""SQL for Member 2, using the same connection and transactions as Member 1."""
+"""Company and Session repository for Interior Designer Platform."""
 import hashlib
 import time
 
@@ -9,7 +9,7 @@ def token_hash(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-class Member2Repository:
+class CompanyRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
@@ -47,3 +47,7 @@ class Member2Repository:
 
     def delete_company(self, company_id, owner_id):
         self.connection.execute('DELETE FROM companies WHERE company_id=? AND owner_id=?', (company_id, owner_id))
+
+
+# Aliases for backward compatibility
+CompanyAndSessionRepository = CompanyRepository

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button, Note, PageHead, Table } from '../components';
-import { api } from '../member2';
+import { api } from '../auth';
 import { Failure, ProjectDetailsDialog } from './Projects';
 
-export { CustomerCatalog as ProjectCatalog } from '../member4/CustomerPages';
+export { CustomerCatalog as ProjectCatalog } from '../customer/CustomerPages';
 
 type Analytics = { projectId: string; title: string; status: 'Current' | 'Past'; views: number; shortlists: number };
 export function AnalyticsProjectAdapter() {
@@ -15,9 +15,9 @@ export function AnalyticsProjectAdapter() {
     return () => abort.abort();
   }, [revision]);
   useEffect(() => { const refresh = () => setRevision(v => v + 1); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh); }, []);
-  return <><PageHead eyebrow="Interior Designer" title="Project Analytics" description="Customer detail views and currently saved favourites for your projects."/>
+  return <><PageHead eyebrow="Interior Designer" title="Project Analytics" description="Customer detail views and currently saved favourites for your projects." />
     <Button onClick={() => setRevision(v => v + 1)}>Refresh counts</Button>
-    {error ? <Failure error={error} retry={() => setRevision(v => v + 1)}/> : !projects ? <p role="status">Loading analytics...</p> : <Table heads={['Project ID', 'Your project', 'Status', 'Views', 'Shortlists', 'Action']} empty={!projects.length}>{projects.map(p => <tr key={p.projectId}><td>{p.projectId}</td><td>{p.title}</td><td>{p.status}</td><td>{p.views}</td><td>{p.shortlists}</td><td><Button onClick={() => setSelected(p)}>View Project</Button></td></tr>)}</Table>}
+    {error ? <Failure error={error} retry={() => setRevision(v => v + 1)} /> : !projects ? <p role="status">Loading analytics...</p> : <Table heads={['Project ID', 'Your project', 'Status', 'Views', 'Shortlists', 'Action']} empty={!projects.length}>{projects.map(p => <tr key={p.projectId}><td>{p.projectId}</td><td>{p.title}</td><td>{p.status}</td><td>{p.views}</td><td>{p.shortlists}</td><td><Button onClick={() => setSelected(p)}>View Project</Button></td></tr>)}</Table>}
     <Note>Views count successful customer detail openings, including repeat visits. Shortlists count unique saved customer-project relationships.</Note>
-    {selected && <ProjectDetailsDialog id={selected.projectId} status={selected.status} onClose={() => setSelected(null)}/>}</>;
+    {selected && <ProjectDetailsDialog id={selected.projectId} status={selected.status} onClose={() => setSelected(null)} />}</>;
 }

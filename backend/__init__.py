@@ -1,1 +1,1 @@
-"""Python backend for the Member 1 contribution (US01-US08)."""
+"""Python backend for Interior Designer Platform (Atelier Match)."""

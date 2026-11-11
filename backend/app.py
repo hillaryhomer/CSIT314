@@ -21,8 +21,8 @@ from backend.database import Repository, connect_database, initialize_database
 from backend.models import AppError, UserAccount, UserProfile
 from backend.validation import hash_password, validate_account
 from backend.controllers import effective_access
-from backend.member2_repository import Member2Repository
-from backend.member2 import LoginController, SearchUserAccountController, SuspendUserAccountController, CompanyController
+from backend.company_repository import CompanyRepository
+from backend.company_controllers import LoginController, SearchUserAccountController, SuspendUserAccountController, CompanyController
 from backend.project_boundary import register_project_routes
 from backend.customer_boundary import register_customer_routes
 from backend.activity_boundary import register_activity_routes
@@ -40,7 +40,7 @@ class AuthenticatedContext:
             return None
         connection = connect_database(self.database_path)
         try:
-            stored = Member2Repository(Repository(connection)).session(incoming_request.cookies.get('csit314_session'))
+            stored = CompanyRepository(Repository(connection)).session(incoming_request.cookies.get('csit314_session'))
             return stored['account_id'] if stored else None
         finally:
             connection.close()
@@ -84,7 +84,7 @@ def seed_development(filename: str, environment: str) -> None:
         connection.close()
 
 
-def create_app(database_path: str = "data/member1.sqlite",
+def create_app(database_path: str = "data/atelier_match.sqlite",
                auth_context: AuthenticatedContext | None = None,
                allowed_origin: str = "http://127.0.0.1:5173",
                static_directory: str | None = None) -> Flask:
@@ -125,7 +125,7 @@ def create_app(database_path: str = "data/member1.sqlite",
         if not g.actor_id:
             raise AppError("UNAUTHENTICATED", "An authenticated session is required.")
         if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') and not isinstance(context, DevelopmentContext):
-            stored = Member2Repository(repository()).session(request.cookies.get('csit314_session'))
+            stored = CompanyRepository(repository()).session(request.cookies.get('csit314_session'))
             if not stored or not secrets.compare_digest(stored['csrf_token'], request.headers.get('X-CSRF-Token', '')):
                 raise AppError('FORBIDDEN', 'Invalid session security token. Refresh and retry.')
         if request.path != '/api/auth/logout':
@@ -178,14 +178,14 @@ def create_app(database_path: str = "data/member1.sqlite",
     @app.get('/api/auth/session')
     def current_session():
         account, profile = effective_access(repository(), g.actor_id)
-        stored = Member2Repository(repository()).session(request.cookies.get('csit314_session'))
+        stored = CompanyRepository(repository()).session(request.cookies.get('csit314_session'))
         return jsonify(account=account.to_dict(profile), role=profile.role, permissions=profile.permissions,
                        csrfToken=stored['csrf_token'] if stored else '', development=isinstance(context, DevelopmentContext))
 
     @app.post('/api/auth/logout')
     def logout():
         request.get_json()
-        Member2Repository(repository()).remove_session(request.cookies.get('csit314_session', ''))
+        CompanyRepository(repository()).remove_session(request.cookies.get('csit314_session', ''))
         response = jsonify(loggedOut=True)
         response.delete_cookie('csit314_session', path='/', samesite='Strict')
         return response
@@ -280,7 +280,7 @@ def create_app(database_path: str = "data/member1.sqlite",
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Backend Python Member 1")
+    parser = argparse.ArgumentParser(description="Interior Designer Platform API")
     parser.add_argument("--dev", action="store_true", help="Use the development administrator identity")
     parser.add_argument("--init", action="store_true", help="Initialize the database tables")
     parser.add_argument("--seed", action="store_true", help="Add development sample data")
@@ -290,7 +290,7 @@ def main():
     environment = os.getenv("APP_ENV", os.getenv("NODE_ENV", "development" if args.dev else "production"))
     if args.dev and environment != "development":
         parser.error("--dev is disabled outside development.")
-    filename = os.getenv("DATABASE_PATH", "data/member1.sqlite")
+    filename = os.getenv("DATABASE_PATH", "data/atelier_match.sqlite")
     if args.create_admin:
         initialize_database(filename)
         connection = connect_database(filename)

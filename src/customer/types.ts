@@ -1,4 +1,4 @@
-import type { ProjectRecord } from '../member3/types';
+import type { ProjectRecord } from '../projects/types';
 
 export type CustomerProject = Omit<ProjectRecord, 'ownerAccountId' | 'companyId'> & {
   saved: boolean;

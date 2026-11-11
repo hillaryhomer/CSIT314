@@ -44,7 +44,7 @@ class FavouriteRepository:
 
 
 class ProjectActivityAdapter:
-    """Member 5 contract: derive shortlist totals from unique favourites; no second counter."""
+    """Derive shortlist totals from unique favourites; no redundant counter."""
     view_tracking_available = True
 
     def __init__(self, repository):

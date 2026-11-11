@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Badge, Button, Details, Empty, Modal, Note, PageHead, SearchBox, Table } from '../components';
-import { api, RequestError } from '../member2';
+import { api, RequestError } from '../auth';
 import { collection, placeholderImage, type Category, type DraftImage, type ProjectInput, type ProjectRecord, type ProjectStatus } from './types';
 
 export function Failure({ error, retry }: { error: unknown; retry?: () => void }) {

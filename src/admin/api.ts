@@ -1,4 +1,4 @@
-import { api } from '../member2';
+import { api } from '../auth';
 import type { AccountInput, AccountView, ApiErrorBody, CreateAccountInput, ProfileInput, ProfileView } from './types';
 
 export class ApiClientError extends Error {
@@ -14,7 +14,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 }
 
-export const member1Api = {
+export const adminApi = {
   profiles: (name = '', signal?: AbortSignal): Promise<ProfileView[]> => request(`/profiles?name=${encodeURIComponent(name)}`, { signal }),
   profile: (profileId: string, signal?: AbortSignal): Promise<ProfileView> => request(`/profiles/${encodeURIComponent(profileId)}`, { signal }),
   createProfile: (input: ProfileInput): Promise<ProfileView> => request('/profiles', { method: 'POST', body: JSON.stringify(input) }),

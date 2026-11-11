@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Details, Empty, Field, Modal, Note, PageHead, SearchBox, Table } from '../components';
-import { api, RequestError } from '../member2';
-import { Failure } from '../member3/Projects';
+import { api, RequestError } from '../auth';
+import { Failure } from '../projects/Projects';
 
 type Category = { categoryId: string; name: string; description: string; status: string; createdAt: string | null; updatedAt: string | null };
 type Dialog = { action: 'create' | 'view' | 'edit' | 'delete'; id?: string };

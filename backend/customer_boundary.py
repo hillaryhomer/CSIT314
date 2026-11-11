@@ -1,4 +1,4 @@
-"""Member 4 HTTP Boundary. Customer ownership is never accepted from a request."""
+"""Customer HTTP Boundary. Customer ownership is resolved strictly from session."""
 from flask import g, jsonify, request
 
 from backend.customer_controllers import (SearchIDPController, ViewIDPController, AddFavouriteController,

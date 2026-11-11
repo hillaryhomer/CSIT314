@@ -1,15 +1,15 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, Building2, Check, ChevronDown, ChevronRight, CircleHelp, FileBarChart, FolderOpen, Heart, ImagePlus, LayoutDashboard, ListFilter, LogOut, Menu, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, Tag, Users, X, Eye, Archive, BadgeCheck, Mail, AlertTriangle, Pencil, Trash2, UserRound } from 'lucide-react';
 import { roles, type Role } from './data';
-import { CategoryManagement, PlatformReports } from './member6/ManagerPages';
-import { FavouriteList } from './member4/CustomerPages';
-import { ProjectManagement } from './member3/Projects';
-import { ProjectCatalog, AnalyticsProjectAdapter } from './member3/Catalog';
-import './member3/projects.css';
+import { CategoryManagement, PlatformReports } from './manager/ManagerPages';
+import { FavouriteList } from './customer/CustomerPages';
+import { ProjectManagement } from './projects/Projects';
+import { ProjectCatalog, AnalyticsProjectAdapter } from './projects/Catalog';
+import './projects/projects.css';
 
 import { Badge, Button, PageHead, SearchBox, Empty, Table, Note, Field, Modal, Details } from './components';
-import { CompanyManagement, LoginForm, LogoutForm, Access, useAuth, roleHome } from './member2';
-import { AdminManagement } from './member1/AdminManagement';
+import { CompanyManagement, LoginForm, LogoutForm, Access, useAuth, roleHome } from './auth';
+import { AdminManagement } from './admin/AdminManagement';
 
 type UIContext={path:string;go:(path:string)=>void;notify:(message?:string)=>void};
 const UI=createContext<UIContext>(null!);

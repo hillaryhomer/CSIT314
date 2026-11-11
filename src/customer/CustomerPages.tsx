@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Badge, Button, Empty, Field, Modal, PageHead, SearchBox } from '../components';
-import { api, useAuth } from '../member2';
-import { Failure, ProjectDetailsContent } from '../member3/Projects';
-import { placeholderImage, type Category } from '../member3/types';
+import { api, useAuth } from '../auth';
+import { Failure, ProjectDetailsContent } from '../projects/Projects';
+import { placeholderImage, type Category } from '../projects/types';
 import type { CustomerProject, SaveResult } from './types';
 import './customer.css';
 

@@ -14,7 +14,6 @@
     "start": "python -m backend.app --serve-ui",
     "test": "node -e \"const { spawn } = require('child_process'); const py = process.platform === 'win32' && require('fs').existsSync('.venv/Scripts/python.exe') ? '.venv/Scripts/python.exe' : 'python'; spawn(py, ['TestRunner.py'], { stdio: 'inherit' }).on('exit', process.exit);\"",
     "test:unit": "python -m unittest discover -s tests/us -p Us*.py -v",
-    "test:e2e": "playwright test",
     "admin:create": "python -m backend.app --create-admin",
     "db:large-scale": "python -m backend.generate_large_scale_data"
   },
@@ -24,7 +23,6 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
     "@types/node": "^24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

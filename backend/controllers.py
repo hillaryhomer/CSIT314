@@ -8,7 +8,7 @@ from backend.validation import hash_password, validate_account, validate_profile
 
 
 def effective_access(repository: Repository, actor_id: str | None) -> tuple[UserAccount, UserProfile]:
-    """Used with Member 2 to recheck access on every request."""
+    """Recheck active user access and profile status on every request."""
     if not actor_id:
         raise AppError("UNAUTHENTICATED", "An authenticated session is required.")
     account = repository.find_account(actor_id)

@@ -138,7 +138,7 @@ DeletePastIDPC = DeletePastIDPController
 
 
 class CustomerProjectController(Controller):
-    """Read adapter for Member 4; no publication or analytics workflow is introduced."""
+    """Read adapter for customer catalog; no publication workflow needed."""
     def search(self, query='', category_id='', style=''):
         return SearchIDPController(self.repository, self.actor_id).execute(query, category_id, style)
 

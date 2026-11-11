@@ -1,4 +1,4 @@
-"""Seed sample accounts and data for all 4 roles into data/member1.sqlite."""
+"""Seed sample accounts and data for all 4 roles into data/atelier_match.sqlite."""
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -9,14 +9,14 @@ from backend.category_repository import CategoryRepository
 from backend.category_entity import IDPCategory
 from backend.project_entity import InteriorDesignProject
 from backend.project_repository import ProjectRepository
-from backend.member2 import CompanyController
-from backend.member2_repository import Member2Repository
+from backend.company_controllers import CompanyController
+from backend.company_repository import CompanyRepository
 from backend.customer_controllers import AddFavouriteController
 from backend.activity_controllers import RecordIDPViewController
 
 PASSWORD = "123456"
 
-def seed_demo_accounts(database_path: str = "data/member1.sqlite"):
+def seed_demo_accounts(database_path: str = "data/atelier_match.sqlite"):
     initialize_database(database_path)
     connection = connect_database(database_path)
     try:
@@ -66,8 +66,8 @@ def seed_demo_accounts(database_path: str = "data/member1.sqlite"):
 
         # 4. Ensure Company exists for designer
         designer_id = repo.account_with_username("designer").account_id
-        m2_repo = Member2Repository(repo)
-        if not m2_repo.company(designer_id):
+        company_repo = CompanyRepository(repo)
+        if not company_repo.company(designer_id):
             CompanyController(repo, designer_id).create({
                 "name": "Atelier Design Studio",
                 "address": "12 Marina Boulevard #08-01",
@@ -77,7 +77,7 @@ def seed_demo_accounts(database_path: str = "data/member1.sqlite"):
 
         # 5. Ensure Projects exist for designer
         proj_repo = ProjectRepository(repo)
-        company = m2_repo.company(designer_id)
+        company = company_repo.company(designer_id)
         comp_id = company["companyId"] if company else None
 
         if not proj_repo.search(owner=designer_id):
