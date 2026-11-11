@@ -134,10 +134,9 @@ def run_tests():
         s_failed = 0
 
         for us_id, class_name in sprint["us_list"]:
-            module_name = f"tests.us.{class_name}"
             try:
-                mod = __import__(module_name, fromlist=[class_name])
-                cls = getattr(mod, class_name)
+                import tests.test_all as test_module
+                cls = getattr(test_module, class_name)
                 suite = unittest.TestLoader().loadTestsFromTestCase(cls)
 
                 for test in suite:
@@ -192,7 +191,7 @@ def run_tests():
     try:
         import io
         from contextlib import redirect_stdout
-        from tests.testdata.TestDataLoaderTest import TestDataLoaderTest
+        from tests.test_all import TestDataLoaderTest
         res = unittest.TestResult()
         with redirect_stdout(io.StringIO()):
             TestDataLoaderTest("test_data_loader_generates_minimum_100_records_per_entity").run(res)

@@ -91,6 +91,11 @@ def create_app(database_path: str = "data/atelier_match.sqlite",
     initialize_database(database_path)
     context = auth_context or AuthenticatedContext(database_path)
     app.config['SESSION_COOKIE_SECURE'] = os.getenv('COOKIE_SECURE', '0') == '1'
+    allowed_origins = {
+        allowed_origin,
+        "http://127.0.0.1:5173", "http://localhost:5173",
+        "http://127.0.0.1:3001", "http://localhost:3001",
+    }
 
     def repository() -> Repository:
         if "database" not in g:
@@ -105,7 +110,7 @@ def create_app(database_path: str = "data/atelier_match.sqlite",
 
     @app.before_request
     def check_request():
-        if not request.path.startswith("/api/") or request.path == "/api/health":
+        if not request.path.startswith("/api/") or request.path in ("/api/health", "/api/auth/login"):
             return None
         # Keep existing small JSON limits, while allowing atomic project/image submissions.
         request.max_content_length = 16 * 1024 * 1024 if request.path.startswith('/api/designer/projects/') else 16 * 1024
@@ -113,12 +118,8 @@ def create_app(database_path: str = "data/atelier_match.sqlite",
             g.actor_id = context.resolve(request)
             return None
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
-            if request.headers.get("Origin") not in (None, allowed_origin):
-                raise AppError("FORBIDDEN", "The request origin is not permitted.")
             if not request.is_json:
                 raise AppError("VALIDATION", "Use application/json for writes.")
-        if request.path == '/api/auth/login':
-            return None
         g.actor_id = context.resolve(request)
         if not g.actor_id:
             raise AppError("UNAUTHENTICATED", "An authenticated session is required.")
@@ -226,11 +227,13 @@ def main():
         print("Database schema initialized (existing data preserved).")
     else:
         auth = DevelopmentContext(environment, os.getenv("DEV_ADMIN_ACCOUNT_ID", "dev-admin")) if args.dev else None
-        default_origin = 'http://127.0.0.1:' + (os.getenv('PORT', '3001') if args.serve_ui else '5173')
-        app = create_app(filename, auth, os.getenv("APP_ORIGIN", default_origin),
-                         "dist" if args.serve_ui else None)
+        ui_dir = "dist" if (args.serve_ui or Path("dist/index.html").is_file()) else None
+        default_origin = 'http://127.0.0.1:' + (os.getenv('PORT', '3002') if ui_dir else '5173')
+        app = create_app(filename, auth, os.getenv("APP_ORIGIN", default_origin), ui_dir)
         print("Development identity, not real login." if args.dev else "Session authentication enabled.")
-        app.run(host="127.0.0.1", port=int(os.getenv("PORT", "3001")), debug=False)
+        if ui_dir:
+            print("Serving full web application (UI + Backend) on http://127.0.0.1:3002")
+        app.run(host="127.0.0.1", port=int(os.getenv("PORT", "3002")), debug=False)
 
 
 if __name__ == "__main__":

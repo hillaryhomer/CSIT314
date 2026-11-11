@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
-    "dev:api": "python -m backend.app",
+    "dev": "vite",
+    "dev:api": "node -e \"const { spawn } = require('child_process'); const py = process.platform === 'win32' && require('fs').existsSync('.venv/Scripts/python.exe') ? '.venv/Scripts/python.exe' : 'python'; spawn(py, ['app.py'], { stdio: 'inherit' }).on('exit', process.exit);\"",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
