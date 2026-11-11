@@ -6,10 +6,10 @@ echo.
 echo Membersihkan proses server lama...
 taskkill /F /IM python.exe 2>nul
 echo.
-echo Membuka browser ke http://127.0.0.1:3001 ...
-start http://127.0.0.1:3001
+echo Membuka browser ke http://127.0.0.1:3002 ...
+start http://127.0.0.1:3002
 echo.
-echo Server aktif di http://127.0.0.1:3001
+echo Server aktif di http://127.0.0.1:3002
 echo (Tekan Ctrl+C untuk berhenti)
 echo.
 

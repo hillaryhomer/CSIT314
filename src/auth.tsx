@@ -23,7 +23,7 @@ export async function api<T>(path: string, method = 'GET', body?: unknown, signa
     data = await response.json();
   } catch {
     if (!response.ok || contentType.includes('text/html')) {
-      throw new RequestError('Backend server is unreachable or not running on port 3001. Please run: python -m backend.app');
+      throw new RequestError('Backend server is unreachable or not running on port 3002.');
     }
     throw new RequestError('The server returned an unreadable response.');
   }
