@@ -1,32 +1,28 @@
-"""Boundary: accept HTTP requests, call controllers, and return JSON."""
+"""Boundary: Flask application factory, request lifecycle, and CLI entrypoint.
+Mediates between HTTP requests, session management, and BCE boundary handlers.
+"""
 
 import argparse
 import os
 from pathlib import Path
 import secrets
 import sqlite3
+import sys
 from getpass import getpass
 from uuid import uuid4
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from flask import Flask, Request, g, jsonify, request, send_from_directory
 from werkzeug.exceptions import BadRequest, NotFound, RequestEntityTooLarge
 
-from backend.controllers import (
-    CreateUserProfileController, ViewUserProfileController,
-    UpdateUserProfileController, SuspendUserProfileController,
-    SearchUserProfileController, CreateUserAccountController,
-    ViewUserAccountController, UpdateUserAccountController,
-)
-from backend.database import Repository, connect_database, initialize_database
+from backend.boundary import register_all_routes
+from backend.controllers import effective_access
+from backend.database import Repository, CompanyRepository, connect_database, initialize_database
 from backend.models import AppError, UserAccount, UserProfile
 from backend.validation import hash_password, validate_account
-from backend.controllers import effective_access
-from backend.company_repository import CompanyRepository
-from backend.company_controllers import LoginController, SearchUserAccountController, SuspendUserAccountController, CompanyController
-from backend.project_boundary import register_project_routes
-from backend.customer_boundary import register_customer_routes
-from backend.activity_boundary import register_activity_routes
-from backend.manager_boundary import register_manager_routes
 
 
 class AuthenticatedContext:
@@ -73,12 +69,14 @@ def seed_development(filename: str, environment: str) -> None:
     try:
         with repository.transaction():
             for profile in samples:
-                if not repository.find_profile(profile.profile_id):
+                if not repository.profile_with_id(profile.profile_id) and not repository.profile_with_name(profile.name):
                     repository.create_profile(profile)
-            if not repository.find_account("dev-admin"):
+            admin_prof = repository.profile_with_name("User Admin")
+            prof_id = admin_prof.profile_id if admin_prof else "dev-profile-admin"
+            if not repository.account_with_id("dev-admin") and not repository.account_with_username("dev.admin"):
                 repository.create_account(UserAccount(
                     "dev-admin", "dev.admin", "dev.admin@example.test",
-                    hash_password(secrets.token_urlsafe(24)), "dev-profile-admin",
+                    hash_password(secrets.token_urlsafe(24)), prof_id,
                 ))
     finally:
         connection.close()
@@ -163,104 +161,8 @@ def create_app(database_path: str = "data/atelier_match.sqlite",
     def missing_endpoint(error):
         return application_error(AppError("NOT_FOUND", "This endpoint does not exist."))
 
-    @app.get("/api/health")
-    def health():
-        return jsonify(status="ok")
-
-    @app.post('/api/auth/login')
-    def login():
-        token, payload = LoginController(repository(), None).execute(request.get_json(), request.cookies.get('csit314_session', ''))
-        response = jsonify(payload)
-        response.set_cookie('csit314_session', token, max_age=28800, httponly=True,
-                            secure=app.config['SESSION_COOKIE_SECURE'], samesite='Strict', path='/')
-        return response
-
-    @app.get('/api/auth/session')
-    def current_session():
-        account, profile = effective_access(repository(), g.actor_id)
-        stored = CompanyRepository(repository()).session(request.cookies.get('csit314_session'))
-        return jsonify(account=account.to_dict(profile), role=profile.role, permissions=profile.permissions,
-                       csrfToken=stored['csrf_token'] if stored else '', development=isinstance(context, DevelopmentContext))
-
-    @app.post('/api/auth/logout')
-    def logout():
-        request.get_json()
-        CompanyRepository(repository()).remove_session(request.cookies.get('csit314_session', ''))
-        response = jsonify(loggedOut=True)
-        response.delete_cookie('csit314_session', path='/', samesite='Strict')
-        return response
-
-    @app.post('/api/accounts/<account_id>/suspend')
-    def suspend_account(account_id):
-        request.get_json()
-        return jsonify(SuspendUserAccountController(repository(), g.actor_id).execute(account_id))
-
-    @app.get('/api/company')
-    def view_company():
-        return jsonify(CompanyController(repository(), g.actor_id).view(request.args.get('q', '')))
-
-    @app.post('/api/company')
-    def create_company():
-        return jsonify(CompanyController(repository(), g.actor_id).create(request.get_json())), 201
-
-    @app.put('/api/company/<company_id>')
-    def update_company(company_id):
-        return jsonify(CompanyController(repository(), g.actor_id).update(company_id, request.get_json()))
-
-    @app.delete('/api/company/<company_id>')
-    def delete_company(company_id):
-        request.get_json()
-        return jsonify(CompanyController(repository(), g.actor_id).delete(company_id))
-
-    @app.get("/api/profiles")
-    def search_profiles():
-        controller = SearchUserProfileController(repository(), g.actor_id)
-        return jsonify(controller.execute(request.args.get("name", "")))
-
-    @app.post("/api/profiles")
-    def create_profile():
-        controller = CreateUserProfileController(repository(), g.actor_id)
-        return jsonify(controller.execute(request.get_json())), 201
-
-    @app.get("/api/profiles/<profile_id>")
-    def view_profile(profile_id):
-        return jsonify(ViewUserProfileController(repository(), g.actor_id).execute(profile_id))
-
-    @app.put("/api/profiles/<profile_id>")
-    def update_profile(profile_id):
-        controller = UpdateUserProfileController(repository(), g.actor_id)
-        return jsonify(controller.execute(profile_id, request.get_json()))
-
-    @app.post("/api/profiles/<profile_id>/suspend")
-    def suspend_profile(profile_id):
-        request.get_json()  # Still reject malformed JSON; identity is not read from the body.
-        return jsonify(SuspendUserProfileController(repository(), g.actor_id).execute(profile_id))
-
-    @app.get("/api/accounts")
-    def list_accounts():
-        if set(request.args) - {'q', 'username', 'email'}:
-            raise AppError('VALIDATION', 'Unsupported account search field.')
-        return jsonify(SearchUserAccountController(repository(), g.actor_id).execute(
-            request.args.get('q', request.args.get('username', request.args.get('email', '')))))
-
-    @app.post("/api/accounts")
-    def create_account():
-        controller = CreateUserAccountController(repository(), g.actor_id)
-        return jsonify(controller.execute(request.get_json())), 201
-
-    @app.get("/api/accounts/<account_id>")
-    def view_account(account_id):
-        return jsonify(ViewUserAccountController(repository(), g.actor_id).execute(account_id))
-
-    @app.put("/api/accounts/<account_id>")
-    def update_account(account_id):
-        controller = UpdateUserAccountController(repository(), g.actor_id)
-        return jsonify(controller.execute(account_id, request.get_json()))
-
-    register_project_routes(app, repository)
-    register_customer_routes(app, repository)
-    register_activity_routes(app, repository)
-    register_manager_routes(app, repository)
+    # Register all BCE HTTP endpoints through the Boundary layer
+    register_all_routes(app, repository, context=context)
 
     if static_directory:
         directory = Path(static_directory).resolve()
@@ -307,7 +209,6 @@ def main():
             with repository.transaction():
                 if repository.account_with_username(values['username']) or repository.account_with_email(values['email']):
                     raise AppError('DUPLICATE', 'Username or email already exists; no account was changed.')
-                # Each CLI-created admin receives an independent profile to preserve existing roles.
                 profile = UserProfile(profile_id, 'Administrator ' + values['username'], 'admin',
                     ['profiles:read', 'profiles:write', 'accounts:read', 'accounts:write'])
                 repository.create_profile(profile)
@@ -318,7 +219,7 @@ def main():
         finally:
             connection.close()
     elif args.seed:
-        seed_development(filename, environment)
+        seed_development(filename, "development")
         print("Development sample data initialized.")
     elif args.init:
         initialize_database(filename)

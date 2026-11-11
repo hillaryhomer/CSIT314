@@ -12,6 +12,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from backend.database import connect_database, initialize_database, Repository
 from backend.models import UserAccount, UserProfile
 from backend.validation import hash_password, normalize, clean

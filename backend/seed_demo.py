@@ -1,20 +1,24 @@
 """Seed sample accounts and data for all 4 roles into data/atelier_match.sqlite."""
 import os
 import sqlite3
+import sys
 from datetime import datetime, timezone
-from backend.database import connect_database, initialize_database, Repository
-from backend.models import UserAccount, UserProfile
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from backend.controllers import CompanyController, AddFavouriteController, RecordIDPViewController
+from backend.database import (
+    Repository, CategoryRepository, ProjectRepository, CompanyRepository,
+    connect_database, initialize_database
+)
+from backend.models import UserAccount, UserProfile, IDPCategory, InteriorDesignProject
 from backend.validation import hash_password
-from backend.category_repository import CategoryRepository
-from backend.category_entity import IDPCategory
-from backend.project_entity import InteriorDesignProject
-from backend.project_repository import ProjectRepository
-from backend.company_controllers import CompanyController
-from backend.company_repository import CompanyRepository
-from backend.customer_controllers import AddFavouriteController
-from backend.activity_controllers import RecordIDPViewController
 
 PASSWORD = "123456"
+
 
 def seed_demo_accounts(database_path: str = "data/atelier_match.sqlite"):
     initialize_database(database_path)
@@ -126,6 +130,7 @@ def seed_demo_accounts(database_path: str = "data/atelier_match.sqlite"):
         print("  - User Admin        : your existing admin '123456'")
     finally:
         connection.close()
+
 
 if __name__ == "__main__":
     seed_demo_accounts()
