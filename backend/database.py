@@ -45,7 +45,7 @@ def connect_database(filename: str) -> sqlite3.Connection:
 
 
 def initialize_database(filename: str) -> None:
-    """Initialize all 11 relational tables and triggers using the unified schema."""
+    """Initialize the database tables and reporting triggers."""
     connection = connect_database(filename)
     try:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
@@ -120,9 +120,9 @@ class Repository:
         cursor = self.connection.cursor()
         cursor.execute(
             """UPDATE user_profiles
-               SET name = ?, name_key = ?, permissions_json = ?, status = ?
+               SET name = ?, name_key = ?, role = ?, permissions_json = ?, status = ?
                WHERE profile_id = ?;""",
-            (profile.name, normalize(profile.name), json.dumps(profile.permissions),
+            (profile.name, normalize(profile.name), profile.role, json.dumps(profile.permissions),
              profile.status, profile.profile_id),
         )
 

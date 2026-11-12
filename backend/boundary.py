@@ -200,7 +200,9 @@ def register_all_routes(app, repository, context=None):
     @app.post('/api/auth/logout')
     def logout():
         request.get_json()
-        CompanyRepository(repository()).remove_session(request.cookies.get('csit314_session', ''))
+        store = repository()
+        with store.transaction():
+            CompanyRepository(store).remove_session(request.cookies.get('csit314_session', ''))
         response = jsonify(loggedOut=True)
         response.delete_cookie('csit314_session', path='/', samesite='Strict')
         return response

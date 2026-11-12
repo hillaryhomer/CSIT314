@@ -1,7 +1,7 @@
--- Unified CSIT314 Schema: Interior Designer Platform (Atelier Match)
--- Contains all tables, indexes, and triggers across Sprints 1, 2, and 3.
+-- SQLite schema for the interior design platform.
+-- Tables, indexes, and activity-reporting triggers.
 
--- 1. User Profiles (Sprint 2 - US01..US05)
+-- 1. User Profiles (US01..US05)
 CREATE TABLE IF NOT EXISTS user_profiles (
     profile_id TEXT PRIMARY KEY,
     name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 80),
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     status TEXT NOT NULL CHECK(status IN ('Active', 'Suspended'))
 ) STRICT;
 
--- 2. User Accounts (Sprint 2 - US06..US10)
+-- 2. User Accounts (US06..US10)
 CREATE TABLE IF NOT EXISTS user_accounts (
     account_id TEXT PRIMARY KEY,
     username TEXT NOT NULL CHECK(length(username) BETWEEN 3 AND 40),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS user_accounts (
 
 CREATE INDEX IF NOT EXISTS accounts_profile_id ON user_accounts(profile_id);
 
--- 3. Authentication Sessions (Sprint 1 - US11..US12, US18..US19, US35..US36, US47..US48)
+-- 3. Authentication Sessions (US11..US12, US18..US19, US35..US36, US47..US48)
 CREATE TABLE IF NOT EXISTS auth_sessions (
     token_hash TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES user_accounts(account_id) ON DELETE CASCADE,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
 
 CREATE INDEX IF NOT EXISTS sessions_account ON auth_sessions(account_id);
 
--- 4. Company Information (Sprint 2 - US13..US17)
+-- 4. Company Information (US13..US17)
 CREATE TABLE IF NOT EXISTS companies (
     company_id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL UNIQUE REFERENCES user_accounts(account_id) ON DELETE RESTRICT,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS companies (
     description TEXT NOT NULL DEFAULT '' CHECK(length(description) <= 4000)
 ) STRICT;
 
--- 5. IDP Categories (Sprint 3 - US39..US43)
+-- 5. IDP Categories (US39..US43)
 CREATE TABLE IF NOT EXISTS project_categories (
     category_id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
@@ -70,7 +70,7 @@ INSERT OR IGNORE INTO project_categories(category_id, name, name_key, descriptio
 ('CAT002', 'Commercial', 'commercial', 'Offices and retail'),
 ('CAT003', 'Hospitality', 'hospitality', 'Cafes, restaurants and boutique hotels');
 
--- 6. Interior Design Projects (Sprint 2 & 3 - US20..US29, US30..US31)
+-- 6. Interior Design Projects (US20..US29, US30..US31)
 CREATE TABLE IF NOT EXISTS interior_design_projects (
     project_id TEXT PRIMARY KEY,
     owner_account_id TEXT NOT NULL REFERENCES user_accounts(account_id) ON DELETE RESTRICT,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS interior_design_projects (
 
 CREATE INDEX IF NOT EXISTS projects_owner_status ON interior_design_projects(owner_account_id, status);
 
--- 7. Project Images (Sprint 2 - US20..US29)
+-- 7. Project Images (US20..US29)
 CREATE TABLE IF NOT EXISTS project_images (
     image_id TEXT PRIMARY KEY,
     project_id TEXT NOT NULL REFERENCES interior_design_projects(project_id) ON DELETE CASCADE,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS project_images (
     UNIQUE(project_id, position)
 ) STRICT;
 
--- 8. Customer Favourites (Sprint 3 - US32..US34)
+-- 8. Customer Favourites (US32..US34)
 CREATE TABLE IF NOT EXISTS favourites (
     customer_account_id TEXT NOT NULL REFERENCES user_accounts(account_id) ON DELETE RESTRICT,
     project_id TEXT NOT NULL REFERENCES interior_design_projects(project_id) ON DELETE CASCADE,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS favourites (
 
 CREATE INDEX IF NOT EXISTS favourites_project ON favourites(project_id);
 
--- 9. Project Views Analytics (Sprint 3 - US31, US37)
+-- 9. Project Views Analytics (US31, US37)
 CREATE TABLE IF NOT EXISTS project_views (
     project_id TEXT NOT NULL REFERENCES interior_design_projects(project_id) ON DELETE CASCADE,
     event_id TEXT NOT NULL CHECK(length(event_id) BETWEEN 16 AND 100),
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS project_views (
 
 CREATE INDEX IF NOT EXISTS project_views_time ON project_views(occurred_at, project_id);
 
--- 10. Platform Report Ledger (Sprint 3 - US44..US46)
+-- 10. Platform Report Ledger (US44..US46)
 CREATE TABLE IF NOT EXISTS report_events (
     kind TEXT NOT NULL CHECK(kind IN ('project_created','project_view')),
     event_key TEXT NOT NULL,

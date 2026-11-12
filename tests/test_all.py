@@ -1,6 +1,4 @@
-"""CSIT314 Interior Designer Platform (Atelier Match)
-Unified Test Suite — Consolidating all 48 User Story tests and NFR benchmark.
-"""
+"""Legacy user-story scenarios and bulk-data count checks for Atelier Match."""
 from datetime import datetime, timezone
 import json
 import os
@@ -24,6 +22,7 @@ ADMIN_PERMS = ["profiles:read", "profiles:write", "accounts:read", "accounts:wri
 
 
 class IdpTestCase(unittest.TestCase):
+    """Shared fixtures for legacy scenarios; placeholder assertions do not exercise features."""
     password_hash = hash_password(PASSWORD)
 
     def setUp(self):
@@ -65,17 +64,14 @@ class Us01CreateUserProfileTest(IdpTestCase):
 
     def test_create_profile_valid(self):
         """PASS | US01 | Create profile with valid permissions | "Profile created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_profile_duplicate(self):
         """PASS | US01 | Duplicate profile name rejected | "Profile name/email is already used." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_profile_validation(self):
         """PASS | US01 | Empty name or invalid permissions | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us02ViewUserProfileTest(IdpTestCase):
@@ -84,12 +80,10 @@ class Us02ViewUserProfileTest(IdpTestCase):
 
     def test_view_profile_valid(self):
         """PASS | US02 | View profile by unique ID | "Profile details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_profile_nonexistent(self):
         """PASS | US02 | Query non-existent profile ID | "Profile not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us03UpdateUserProfileTest(IdpTestCase):
@@ -98,12 +92,10 @@ class Us03UpdateUserProfileTest(IdpTestCase):
 
     def test_update_profile_valid(self):
         """PASS | US03 | Update profile name and permissions | "Profile updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_profile_collision(self):
         """PASS | US03 | Prevent profile name collision | "Profile name/email is already used." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us04SuspendUserProfileTest(IdpTestCase):
@@ -112,17 +104,14 @@ class Us04SuspendUserProfileTest(IdpTestCase):
 
     def test_suspend_profile_valid(self):
         """PASS | US04 | Suspend active profile | "Profile suspended." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_suspend_profile_already_suspended(self):
         """PASS | US04 | Duplicate suspension rejected | "Profile is already suspended." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_suspended_profile_cannot_be_assigned(self):
         """PASS | US04 | Suspended profile cannot be assigned | "This action is not permitted to perform this action." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us05SearchUserProfileTest(IdpTestCase):
@@ -131,12 +120,10 @@ class Us05SearchUserProfileTest(IdpTestCase):
 
     def test_search_profile_valid(self):
         """PASS | US05 | Search profile by name substring | "Profile search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_profile_empty_query(self):
         """PASS | US05 | Search with empty query returns all | "Profiles returned." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us06CreateUserAccountTest(IdpTestCase):
@@ -145,17 +132,14 @@ class Us06CreateUserAccountTest(IdpTestCase):
 
     def test_create_account_valid(self):
         """PASS | US06 | Create account with valid credentials | "Account created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_account_duplicate(self):
         """PASS | US06 | Duplicate username or email rejected | "Username or email is already used." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_account_short_password(self):
         """PASS | US06 | Reject password shorter than 6 characters | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us07ViewUserAccountTest(IdpTestCase):
@@ -164,12 +148,10 @@ class Us07ViewUserAccountTest(IdpTestCase):
 
     def test_view_account_valid(self):
         """PASS | US07 | View account details without exposing password | "Account details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_account_nonexistent(self):
         """PASS | US07 | Query non-existent account ID | "Account not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us08UpdateUserAccountTest(IdpTestCase):
@@ -178,12 +160,10 @@ class Us08UpdateUserAccountTest(IdpTestCase):
 
     def test_update_account_valid(self):
         """PASS | US08 | Update account keeping password hash intact | "Account updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_account_tampering_ignored(self):
         """PASS | US08 | Account status and ID cannot be tampered | "Account protected." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us09SuspendUserAccountTest(IdpTestCase):
@@ -192,12 +172,10 @@ class Us09SuspendUserAccountTest(IdpTestCase):
 
     def test_suspend_account_valid(self):
         """PASS | US09 | Suspend active account and revoke session | "Account suspended." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_suspended_account_login_rejected(self):
         """PASS | US09 | Suspended account login rejected | "This account is not active." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us10SearchUserAccountsTest(IdpTestCase):
@@ -206,12 +184,10 @@ class Us10SearchUserAccountsTest(IdpTestCase):
 
     def test_search_account_valid(self):
         """PASS | US10 | Search accounts by username or email | "Account search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_account_empty_match(self):
         """PASS | US10 | Query matching no accounts returns empty | "No accounts found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us11UserAdminLoginTest(IdpTestCase):
@@ -220,32 +196,26 @@ class Us11UserAdminLoginTest(IdpTestCase):
 
     def test_login_valid_credentials(self):
         """PASS | US11 | Log in with valid credentials | "Login successful." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_login_invalid_password(self):
         """PASS | US11 | Log in with invalid password | "Email, username, or password is wrong." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_login_unknown_identifier(self):
         """PASS | US11 | Log in with unknown identifier | "Email, username, or password is wrong." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_login_required_fields(self):
         """PASS | US11 | Log in with the required fields | "Login successful." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_login_suspended_account(self):
         """PASS | US11 | Suspended account login rejected | "This account is not active." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_login_empty_fields(self):
         """PASS | US11 | Log in with empty required fields | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us12UserAdminLogoutTest(IdpTestCase):
@@ -254,12 +224,10 @@ class Us12UserAdminLogoutTest(IdpTestCase):
 
     def test_logout_valid(self):
         """PASS | US12 | Log out of system | "You have logged out." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_logout_token_revoked(self):
         """PASS | US12 | Log out invalidates session token | "Session revoked." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us13CreateCompanyProfileTest(IdpTestCase):
@@ -268,17 +236,14 @@ class Us13CreateCompanyProfileTest(IdpTestCase):
 
     def test_create_company_valid(self):
         """PASS | US13 | Create company profile with valid registration | "Company created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_company_duplicate(self):
         """PASS | US13 | Duplicate company profile rejected | "Company already exists." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_company_validation(self):
         """PASS | US13 | Validate required company fields | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us14ViewCompanyInformationTest(IdpTestCase):
@@ -287,12 +252,10 @@ class Us14ViewCompanyInformationTest(IdpTestCase):
 
     def test_view_company_valid(self):
         """PASS | US14 | Retrieve registered company information | "Company information details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_company_not_registered(self):
         """PASS | US14 | View company when none registered | "Company not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us15UpdateCompanyInformationTest(IdpTestCase):
@@ -301,12 +264,10 @@ class Us15UpdateCompanyInformationTest(IdpTestCase):
 
     def test_update_company_valid(self):
         """PASS | US15 | Update company address and contact details | "Company updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_company_unauthorized(self):
         """PASS | US15 | Designer cannot update another company | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us16DeleteCompanyInformationTest(IdpTestCase):
@@ -315,12 +276,10 @@ class Us16DeleteCompanyInformationTest(IdpTestCase):
 
     def test_delete_company_valid(self):
         """PASS | US16 | Delete registered company information | "Company deleted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_delete_company_nonexistent(self):
         """PASS | US16 | Deleting non-existent company returns 404 | "Company not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us17SearchCompanyInformationTest(IdpTestCase):
@@ -329,12 +288,10 @@ class Us17SearchCompanyInformationTest(IdpTestCase):
 
     def test_search_company_valid(self):
         """PASS | US17 | Search company records by name keyword | "Company search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_company_no_match(self):
         """PASS | US17 | Search matching no company returns empty | "No companies found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us18InteriorDesignerLoginTest(IdpTestCase):
@@ -343,12 +300,10 @@ class Us18InteriorDesignerLoginTest(IdpTestCase):
 
     def test_designer_login_valid(self):
         """PASS | US18 | Interior Designer logs in with credentials | "Login successful." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_designer_login_invalid(self):
         """PASS | US18 | Designer login with invalid password | "Email, username, or password is wrong." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us19InteriorDesignerLogoutTest(IdpTestCase):
@@ -357,12 +312,10 @@ class Us19InteriorDesignerLogoutTest(IdpTestCase):
 
     def test_designer_logout_valid(self):
         """PASS | US19 | Interior Designer logs out | "You have logged out." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_designer_logout_revoked(self):
         """PASS | US19 | Session token invalidated upon logout | "Session revoked." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us20CreateCurrentProjectTest(IdpTestCase):
@@ -371,12 +324,10 @@ class Us20CreateCurrentProjectTest(IdpTestCase):
 
     def test_create_current_project_valid(self):
         """PASS | US20 | Create Current IDP entry with status Current | "Project created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_current_project_validation(self):
         """PASS | US20 | Reject Current IDP without title | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us21ViewCurrentProjectTest(IdpTestCase):
@@ -385,12 +336,10 @@ class Us21ViewCurrentProjectTest(IdpTestCase):
 
     def test_view_current_project_valid(self):
         """PASS | US21 | View Current IDP entry by project ID | "Project details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_current_project_nonexistent(self):
         """PASS | US21 | Query non-existent project returns 404 | "Project not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us22UpdateCurrentProjectTest(IdpTestCase):
@@ -399,12 +348,10 @@ class Us22UpdateCurrentProjectTest(IdpTestCase):
 
     def test_update_current_project_valid(self):
         """PASS | US22 | Update Current IDP progress and photos | "Project updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_current_project_unauthorized(self):
         """PASS | US22 | Designer cannot modify another designer project | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us23DeleteCurrentProjectTest(IdpTestCase):
@@ -413,12 +360,10 @@ class Us23DeleteCurrentProjectTest(IdpTestCase):
 
     def test_delete_current_project_valid(self):
         """PASS | US23 | Delete owned Current IDP entry | "Project deleted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_delete_current_project_unauthorized(self):
         """PASS | US23 | Unauthorized deletion attempt blocked | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us24SearchCurrentProjectsTest(IdpTestCase):
@@ -427,12 +372,10 @@ class Us24SearchCurrentProjectsTest(IdpTestCase):
 
     def test_search_current_projects_valid(self):
         """PASS | US24 | Search Current IDPs by keyword (SearchIDPC) | "Current projects search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_current_projects_excludes_past(self):
         """PASS | US24 | Search Current IDPs excludes past projects | "Status filter verified." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us25CreatePastProjectTest(IdpTestCase):
@@ -441,12 +384,10 @@ class Us25CreatePastProjectTest(IdpTestCase):
 
     def test_create_past_project_valid(self):
         """PASS | US25 | Create Past IDP entry with status Past | "Project created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_past_project_invalid_category(self):
         """PASS | US25 | Reject Past IDP with invalid category ID | "Invalid category reference." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us26ViewPastProjectTest(IdpTestCase):
@@ -455,12 +396,10 @@ class Us26ViewPastProjectTest(IdpTestCase):
 
     def test_view_past_project_valid(self):
         """PASS | US26 | View Past IDP entry and completed portfolio | "Project details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_past_project_nonexistent(self):
         """PASS | US26 | Query non-existent past project returns 404 | "Project not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us27UpdatePastProjectTest(IdpTestCase):
@@ -469,12 +408,10 @@ class Us27UpdatePastProjectTest(IdpTestCase):
 
     def test_update_past_project_valid(self):
         """PASS | US27 | Update Past IDP photographs and history | "Project updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_past_project_unauthorized(self):
         """PASS | US27 | Cross-designer edit on Past IDP prevented | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us28DeletePastProjectTest(IdpTestCase):
@@ -483,12 +420,10 @@ class Us28DeletePastProjectTest(IdpTestCase):
 
     def test_delete_past_project_valid(self):
         """PASS | US28 | Delete owned Past IDP entry | "Project deleted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_delete_past_project_unauthorized(self):
         """PASS | US28 | Unauthorized past project deletion blocked | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us29SearchPastProjectsTest(IdpTestCase):
@@ -497,12 +432,10 @@ class Us29SearchPastProjectsTest(IdpTestCase):
 
     def test_search_past_projects_valid(self):
         """PASS | US29 | Search Past IDPs by keyword (SearchIDPC) | "Past projects search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_past_projects_empty_query(self):
         """PASS | US29 | Search with empty query returns all Past IDPs | "Past projects returned." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us30SearchInteriorDesignProjectsTest(IdpTestCase):
@@ -511,12 +444,10 @@ class Us30SearchInteriorDesignProjectsTest(IdpTestCase):
 
     def test_search_catalog_valid(self):
         """PASS | US30 | Search catalog IDPs by keyword, category, style | "Catalog search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_catalog_no_match(self):
         """PASS | US30 | Query matching no designs returns empty array | "No projects found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us31ViewInteriorDesignProjectTest(IdpTestCase):
@@ -525,12 +456,10 @@ class Us31ViewInteriorDesignProjectTest(IdpTestCase):
 
     def test_view_detailed_idp_valid(self):
         """PASS | US31 | View detailed IDP with designer credentials hidden | "Project details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_detailed_idp_records_view(self):
         """PASS | US31 | Viewing project details records ProjectView PV | "Project view recorded." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us32SaveInteriorDesignProjectTest(IdpTestCase):
@@ -539,17 +468,14 @@ class Us32SaveInteriorDesignProjectTest(IdpTestCase):
 
     def test_save_project_valid(self):
         """PASS | US32 | Customer bookmarks published project (AddFAVC) | "Added to favourites." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_save_project_idempotent(self):
         """PASS | US32 | Repeated bookmark returns idempotent result | "Already saved in favourites." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_save_project_unauthenticated(self):
         """PASS | US32 | Unauthenticated bookmark attempt rejected | "Authentication required." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us33SearchShortlistedProjectsTest(IdpTestCase):
@@ -558,12 +484,10 @@ class Us33SearchShortlistedProjectsTest(IdpTestCase):
 
     def test_view_shortlisted_valid(self):
         """PASS | US33 | Customer retrieves list of saved favourites | "Favourite projects returned." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_shortlisted_isolated(self):
         """PASS | US33 | Customer only sees their own saved favourites | "Customer isolation verified." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us34ViewShortlistedProjectsTest(IdpTestCase):
@@ -572,12 +496,10 @@ class Us34ViewShortlistedProjectsTest(IdpTestCase):
 
     def test_search_shortlisted_valid(self):
         """PASS | US34 | Search within favourite list by keyword | "Favourite search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_shortlisted_empty(self):
         """PASS | US34 | Search with no matching saved projects returns [] | "No favourites matched." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us35CustomerLoginTest(IdpTestCase):
@@ -586,12 +508,10 @@ class Us35CustomerLoginTest(IdpTestCase):
 
     def test_customer_login_valid(self):
         """PASS | US35 | Customer logs in with credentials | "Login successful." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_customer_login_invalid(self):
         """PASS | US35 | Customer login with wrong password rejected | "Email, username, or password is wrong." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us36CustomerLogoutTest(IdpTestCase):
@@ -600,12 +520,10 @@ class Us36CustomerLogoutTest(IdpTestCase):
 
     def test_customer_logout_valid(self):
         """PASS | US36 | Customer logs out of system | "You have logged out." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_customer_logout_access_blocked(self):
         """PASS | US36 | Logged-out customer cannot access favourites | "Authentication required." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us37ViewProjectViewCountsTest(IdpTestCase):
@@ -614,12 +532,10 @@ class Us37ViewProjectViewCountsTest(IdpTestCase):
 
     def test_view_counts_valid(self):
         """PASS | US37 | Designer queries view counts on owned IDPs | "Project views counted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_counts_isolated(self):
         """PASS | US37 | Designer view counts strictly isolated | "Competitor statistics hidden." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us38ViewProjectShortlistCountsTest(IdpTestCase):
@@ -628,12 +544,10 @@ class Us38ViewProjectShortlistCountsTest(IdpTestCase):
 
     def test_shortlist_counts_valid(self):
         """PASS | US38 | Designer queries shortlist counts on owned IDPs | "Project shortlists counted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_shortlist_counts_zero(self):
         """PASS | US38 | Project with no shortlists returns count = 0 | "Zero count returned." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us39CreateProjectCategoryTest(IdpTestCase):
@@ -642,17 +556,14 @@ class Us39CreateProjectCategoryTest(IdpTestCase):
 
     def test_create_category_valid(self):
         """PASS | US39 | Platform Manager creates new IDP category | "Category created." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_category_duplicate(self):
         """PASS | US39 | Duplicate category name rejected | "Category name already exists." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_create_category_empty(self):
         """PASS | US39 | Validate non-empty category name | "Please fill in all required fields." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us40ViewProjectCategoriesTest(IdpTestCase):
@@ -661,12 +572,10 @@ class Us40ViewProjectCategoriesTest(IdpTestCase):
 
     def test_view_category_valid(self):
         """PASS | US40 | Retrieve IDP category by unique ID | "Category details." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_view_category_nonexistent(self):
         """PASS | US40 | Query non-existent category returns 404 | "Category not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us41UpdateProjectCategoryTest(IdpTestCase):
@@ -675,12 +584,10 @@ class Us41UpdateProjectCategoryTest(IdpTestCase):
 
     def test_update_category_valid(self):
         """PASS | US41 | Update IDP category name and description | "Category updated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_update_category_collision(self):
         """PASS | US41 | Category name collision rejected | "Category name already exists." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us42DeleteProjectCategoryTest(IdpTestCase):
@@ -689,12 +596,10 @@ class Us42DeleteProjectCategoryTest(IdpTestCase):
 
     def test_delete_category_valid(self):
         """PASS | US42 | Delete unused category from active taxonomies | "Category deleted." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_delete_category_nonexistent(self):
         """PASS | US42 | Deleting non-existent category returns 404 | "Category not found." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us43SearchProjectCategoriesTest(IdpTestCase):
@@ -703,12 +608,10 @@ class Us43SearchProjectCategoriesTest(IdpTestCase):
 
     def test_search_categories_valid(self):
         """PASS | US43 | Search IDP categories by keyword | "Category search completed." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_search_categories_empty_query(self):
         """PASS | US43 | Search with empty query returns all categories | "Categories returned." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us44GenerateDailyReportTest(IdpTestCase):
@@ -717,12 +620,10 @@ class Us44GenerateDailyReportTest(IdpTestCase):
 
     def test_daily_report_valid(self):
         """PASS | US44 | Generate 24-hour daily platform activity report | "Daily report generated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_daily_report_zero_activity(self):
         """PASS | US44 | Daily report for date with no activity handles | "Zero activity report generated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us45GenerateWeeklyReportTest(IdpTestCase):
@@ -731,12 +632,10 @@ class Us45GenerateWeeklyReportTest(IdpTestCase):
 
     def test_weekly_report_valid(self):
         """PASS | US45 | Generate 7-day rolling weekly trend report | "Weekly report generated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_weekly_report_forbidden(self):
         """PASS | US45 | Non-manager account blocked from report generation | "Action not authorized." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us46GenerateMonthlyReportTest(IdpTestCase):
@@ -745,12 +644,10 @@ class Us46GenerateMonthlyReportTest(IdpTestCase):
 
     def test_monthly_report_valid(self):
         """PASS | US46 | Generate 30-day monthly executive report | "Monthly report generated." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_monthly_report_future_date(self):
         """PASS | US46 | Monthly report for future date range handles 0 | "Future date range handled." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us47PlatformManagerLoginTest(IdpTestCase):
@@ -759,12 +656,10 @@ class Us47PlatformManagerLoginTest(IdpTestCase):
 
     def test_manager_login_valid(self):
         """PASS | US47 | Platform Manager logs in with credentials | "Login successful." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_manager_login_invalid(self):
         """PASS | US47 | Manager login with invalid password rejected | "Email, username, or password is wrong." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class Us48PlatformManagerLogoutTest(IdpTestCase):
@@ -773,12 +668,10 @@ class Us48PlatformManagerLogoutTest(IdpTestCase):
 
     def test_manager_logout_valid(self):
         """PASS | US48 | Platform Manager logs out of platform | "You have logged out." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
     def test_manager_logout_replay_blocked(self):
         """PASS | US48 | Replay attack with revoked manager token blocked | "Session revoked." """
-        # Real integration assertion verified against SQLite and Flask backend
         self.assertTrue(True)
 
 class TestDataLoaderTest(unittest.TestCase):

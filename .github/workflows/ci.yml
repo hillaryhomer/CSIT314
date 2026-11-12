@@ -38,8 +38,8 @@ jobs:
       - name: Frontend Static Type Check
         run: npm run typecheck
 
-      - name: Run Unified Test Runner (All Sprints US01–US48)
-        run: python tests/run_all_tests.py
+      - name: Run Test Suite (US01–US48)
+        run: python TestRunner.py
 
       - name: Run Large-Scale Data Generation Benchmark (100+ Records per Entity)
         run: python -m backend.generate_large_scale_data --database data/ci_large_scale.sqlite --count 100

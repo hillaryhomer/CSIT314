@@ -1,6 +1,5 @@
 """Large-scale test data generation script for CSIT314 Interior Designer Platform.
-Generates 100+ valid records for every entity in the database to verify system scalability,
-indexing, search performance, and data integrity under volume.
+Creates 100+ sample records per entity and reports record counts and foreign-key integrity.
 """
 
 import argparse

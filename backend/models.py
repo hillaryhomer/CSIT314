@@ -1,4 +1,4 @@
-"""Unified BCE Entities and Domain Models for Interior Designer Platform (Atelier Match)."""
+"""Domain models for the interior design platform."""
 
 from dataclasses import dataclass, asdict
 from datetime import date, datetime, timedelta, timezone

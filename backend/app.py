@@ -213,7 +213,8 @@ def main():
                 profile = UserProfile(profile_id, 'Administrator ' + values['username'], 'admin',
                     ['profiles:read', 'profiles:write', 'accounts:read', 'accounts:write'])
                 repository.create_profile(profile)
-                repository.create_account(UserAccount('UA-' + str(uuid4()), password_hash=password_hash, **values))
+                repository.create_account(UserAccount('UA-' + str(uuid4()), password_hash=password_hash,
+                    username=values['username'], email=values['email'], profile_id=values['profileId']))
             print('Administrator created. Start the backend without --dev to sign in.')
         except AppError as error:
             parser.error(error.message + (' ' + str(error.fields) if error.fields else ''))

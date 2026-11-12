@@ -1,10 +1,9 @@
-"""Central TestRunner for CSIT314 Interior Designer Platform.
-Produces a unified, professional table display matching senior project references
-and academic grading requirements.
-"""
+"""Run the legacy scenario suite and display grouped test results."""
 from datetime import datetime
 from pathlib import Path
 import re
+import shutil
+import textwrap
 import sys
 import time
 import unittest
@@ -17,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Sprints organized as demonstrated in senior reference & lecture
+# Scenario groups used by the legacy test runner.
 SPRINT_CONFIG = [
     {
         "title": "SPRINT 1 : LOGIN AND SHARED AUTHENTICATION (US11, US12, US18, US19, US35, US36, US47, US48)",
@@ -85,35 +84,84 @@ SPRINT_CONFIG = [
 ]
 
 
+def table_width():
+    # Leave one terminal column free to prevent automatic line wrapping.
+    return max(50, min(110, shutil.get_terminal_size((111, 30)).columns - 1))
+
+
+def detail_widths():
+    remaining = table_width() - 21
+    scenario = int(remaining * 0.55)
+    return [4, 4, scenario, remaining - scenario]
+
+
+def border(widths, left, join, right):
+    print(left + join.join("─" * (width + 2) for width in widths) + right)
+
+
+def cells(values, widths, align=None):
+    wrapped = [textwrap.wrap(str(value), width=width) or [""]
+               for value, width in zip(values, widths)]
+    align = align or ["left"] * len(widths)
+    for line in range(max(map(len, wrapped))):
+        content = []
+        for lines, width, alignment in zip(wrapped, widths, align):
+            value = lines[line] if line < len(lines) else ""
+            value = value.rjust(width) if alignment == "right" else value.ljust(width)
+            content.append(" " + value + " ")
+        print("│" + "│".join(content) + "│")
+
+
 def print_banner(now_str: str):
-    w = 107
-    print("╔" + "═" * w + "╗")
-    print(f"║{'INTERIOR DESIGNER PLATFORM (ATELIER MATCH) — CSIT314':^{w}}║")
-    print(f"║{'CENTRAL UNIFIED TEST SUITE & VERIFICATION RUNNER':^{w}}║")
-    print(f"║{f'Timestamp: {now_str} | Environment: Isolated SQLite':^{w}}║")
-    print("╚" + "═" * w + "╝\n")
+    width = table_width() - 4
+    border([width], "┌", "┬", "┐")
+    for title in ["INTERIOR DESIGNER PLATFORM (ATELIER MATCH) - CSIT314",
+                  "TEST SUITE RUNNER",
+                  f"Timestamp: {now_str} | Isolated SQLite"]:
+        for line in textwrap.wrap(title, width):
+            cells([line.center(width)], [width])
+    border([width], "└", "┴", "┘")
+    print()
 
 
 def print_table_header(title: str):
-    w = 107
-    print("┌" + "─" * w + "┐")
-    print(f"│ {title:<{w - 2}} │")
-    print("├──────┬──────┬──────────────────────────────────────────────────┬────────────────────────────────────────────┤")
-    print("│ STAT │ US   │ TEST SCENARIO & OBJECTIVE                        │ OBSERVED RESULT / RETURN MESSAGE           │")
-    print("├──────┼──────┼──────────────────────────────────────────────────┼────────────────────────────────────────────┤")
+    widths = detail_widths()
+    title_width = table_width() - 4
+    border([title_width], "┌", "┬", "┐")
+    cells([title], [title_width])
+    border(widths, "├", "┬", "┤")
+    cells(["STAT", "US", "TEST SCENARIO", "EXPECTED RESULT / MESSAGE"], widths)
+    border(widths, "├", "┼", "┤")
 
 
 def print_table_row(status: str, us_id: str, scenario: str, msg: str):
-    stat_padded = f" {status:<4} "
-    us_padded = f" {us_id:<4} "
-    scen_padded = f" {scenario[:48]:<48} "
-    msg_str = f'"{msg}"'
-    msg_padded = f" {msg_str[:42]:<42} "
-    print(f"│{stat_padded}│{us_padded}│{scen_padded}│{msg_padded}│")
+    cells([status, us_id, scenario, msg], detail_widths())
 
 
 def print_table_footer():
-    print("└──────┴──────┴──────────────────────────────────────────────────┴────────────────────────────────────────────┘\n")
+    border(detail_widths(), "└", "┴", "┘")
+    print()
+
+
+def print_summary(summaries, total_tests, total_dur, failed_tests):
+    widths = [table_width() - 41, 6, 9, 13]
+    title_width = table_width() - 4
+    border([title_width], "┌", "┬", "┐")
+    cells(["TEST SUITE EXECUTION SUMMARY"], [title_width])
+    border(widths, "├", "┬", "┤")
+    cells(["SPRINT / TEST DOMAIN", "TESTS", "TIME (s)", "STATUS"], widths)
+    border(widths, "├", "┼", "┤")
+    for summary in summaries:
+        rate = int(summary['passed'] / summary['tests'] * 100) if summary['tests'] else 0
+        status = f"{'PASS' if summary['failed'] == 0 else 'FAIL'} ({rate}%)"
+        cells([summary['name'], summary['tests'], f"{summary['duration']:.2f}", status],
+              widths, ["left", "right", "right", "left"])
+        border(widths, "├", "┼", "┤")
+    status = "PASS (100%)" if failed_tests == 0 else f"FAIL ({failed_tests})"
+    cells(["TOTAL - ALL USER STORIES + BENCHMARK", total_tests, f"{total_dur:.2f}", status],
+          widths, ["left", "right", "right", "left"])
+    border(widths, "└", "┴", "┘")
+    print()
 
 
 def run_tests():
@@ -199,7 +247,7 @@ def run_tests():
         nfr_dur = time.time() - nfr_start
         if res.wasSuccessful():
             passed_tests += 1
-            print_table_row("PASS", "NFR", "Populate >= 100 records for all 8 entities", "1,273 records generated; 0 FK violations in 0.14s.")
+            print_table_row("PASS", "NFR", "Populate >= 100 records for all 8 entities", "Record-count assertions passed.")
             sprint_summaries.append({
                 "name": "NFR-01: Large-Scale Test Data Generation (100+ per Entity)",
                 "tests": 1,
@@ -225,25 +273,13 @@ def run_tests():
 
     total_dur = time.time() - start_all
 
-    # Final Executive Summary Table
-    print("┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────┐")
-    print("│                                        TEST SUITE EXECUTION SUMMARY                                         │")
-    print("├──────────────────────────────────────────────────────────────────┬────────────┬─────────────┬───────────────┤")
-    print("│ SPRINT / TEST DOMAIN                                             │ TOTAL RUN  │ DURATION    │ STATUS        │")
-    print("├──────────────────────────────────────────────────────────────────┼────────────┼─────────────┼───────────────┤")
-    for s in sprint_summaries:
-        status_text = f"PASSED ({100 if s['failed'] == 0 else int(s['passed']/s['tests']*100)}%)"
-        print(f"│ {s['name'][:64]:<64} │ {s['tests']:>7} ts │ {s['duration']:>9.2f} s │ {status_text:<13} │")
-    print("├──────────────────────────────────────────────────────────────────┼────────────┼─────────────┼───────────────┤")
-    overall_status = "ALL SUITES PASSED (100%)" if failed_tests == 0 else f"{failed_tests} TESTS FAILED"
-    print(f"│ {'TOTAL (ALL 48 USER STORIES + LARGE-SCALE BENCHMARK)':<64} │ {total_tests:>7} ts │ {total_dur:>9.2f} s │ {overall_status:<13} │")
-    print("└──────────────────────────────────────────────────────────────────┴────────────┴─────────────┴───────────────┘\n")
+    print_summary(sprint_summaries, total_tests, total_dur, failed_tests)
 
     if failed_tests == 0:
-        print("✓ BUILD SUCCESS — ALL 48 USER STORIES AND NFR BENCHMARKS VERIFIED SUCCESSFULLY.\n")
+        print("✓ TEST RUN PASSED — All scheduled tests completed successfully.\n")
         return 0
     else:
-        print(f"✗ BUILD FAILED — {failed_tests} test(s) failed.\n")
+        print(f"✗ TEST RUN FAILED — {failed_tests} test(s) failed.\n")
         return 1
 
 

@@ -1,4 +1,4 @@
-"""Unified BCE Controllers for all 48 User Stories (Interior Designer Platform)."""
+"""Use-case controllers and access checks for the interior design platform."""
 
 from datetime import datetime, timezone
 import secrets
@@ -80,7 +80,7 @@ class Controller:
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 1 : LOGIN AND SHARED AUTHENTICATION
+# LOGIN AND SHARED AUTHENTICATION
 # ---------------------------------------------------------------------------
 
 class LoginController(Controller):
@@ -124,7 +124,7 @@ class LogOutSessionC(Controller):
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 2 : USER PROFILES (US01..US05)
+# USER PROFILES (US01..US05)
 # ---------------------------------------------------------------------------
 
 class CreateProfileController(Controller):
@@ -190,13 +190,13 @@ SearchUPC = SearchProfileController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 2 : USER ACCOUNTS (US06..US10)
+# USER ACCOUNTS (US06..US10)
 # ---------------------------------------------------------------------------
 
 class CreateUserAccountController(Controller):
     def execute(self, data: dict) -> dict:
         values = validate_account(data, creating=True)
-        password_hash = hash_password(values.pop("password"))
+        password_hash = hash_password(data["password"])
         with self.repository.transaction():
             self.require_admin("accounts:write")
             profile = self.get_profile(values["profileId"])
@@ -206,7 +206,8 @@ class CreateUserAccountController(Controller):
                 raise AppError("DUPLICATE", "Username already in use.", {"username": "Username is already used."})
             if self.repository.account_with_email(values["email"]):
                 raise AppError("DUPLICATE", "Email already in use.", {"email": "Email is already used."})
-            account = UserAccount(account_id="UA-" + str(uuid4()), password_hash=password_hash, **values)
+            account = UserAccount(account_id="UA-" + str(uuid4()), password_hash=password_hash,
+                                  username=values['username'], email=values['email'], profile_id=values['profileId'])
             self.repository.create_account(account)
         return account.to_dict(profile)
 
@@ -275,7 +276,7 @@ SearchUAC = SearchUserAccountController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 2 : COMPANY INFORMATION (US13..US17)
+# COMPANY INFORMATION (US13..US17)
 # ---------------------------------------------------------------------------
 
 class CompanyController(Controller):
@@ -342,7 +343,7 @@ class SearchCIC(CompanyController):
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 2 : CURRENT & PAST PROJECTS (US20..US29)
+# CURRENT & PAST PROJECTS (US20..US29)
 # ---------------------------------------------------------------------------
 
 class ProjectController(Controller):
@@ -455,10 +456,10 @@ class SearchPastIDPController(SearchIDPC):
 class CustomerProjectController(Controller):
     def image(self, image_id: str):
         store = ProjectRepository(self.repository)
-        img = store.image_content(image_id)
+        img = store.image(image_id)
         if not img:
             raise AppError("NOT_FOUND", "Image not found.")
-        return img
+        return {'mime_type': img[0], 'content': img[1]}
 
 # BCE Aliases
 CreateCurrentIDPC = CreateCurrentIDPController
@@ -486,7 +487,7 @@ DeleteIDPC = DeleteCurrentIDPController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 3 : CUSTOMER DISCOVERY & FAVOURITES (US30..US36)
+# CUSTOMER DISCOVERY & FAVOURITES (US30..US36)
 # ---------------------------------------------------------------------------
 
 class CustomerCatalogController(Controller):
@@ -583,7 +584,7 @@ SearchFAVC = SearchFavouriteListController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 3 : DESIGNER ANALYTICS (US37..US38)
+# DESIGNER ANALYTICS (US37..US38)
 # ---------------------------------------------------------------------------
 
 class RecordIDPViewController(Controller):
@@ -615,7 +616,7 @@ ViewIDPShortlistsC = ViewAnalyticsController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 3 : IDP CATEGORIES (US39..US43)
+# IDP CATEGORIES (US39..US43)
 # ---------------------------------------------------------------------------
 
 class CategoryController(Controller):
@@ -704,7 +705,7 @@ SearchIDPCC = SearchIDPCategoryController
 
 
 # ---------------------------------------------------------------------------
-# SPRINT 3 : PLATFORM REPORTS (US44..US46)
+# PLATFORM REPORTS (US44..US46)
 # ---------------------------------------------------------------------------
 
 class PlatformReportController(Controller):
