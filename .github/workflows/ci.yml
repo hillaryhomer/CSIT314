@@ -42,7 +42,9 @@ jobs:
         run: python TestRunner.py
 
       - name: Run Large-Scale Data Generation Benchmark (100+ Records per Entity)
-        run: python -m backend.generate_large_scale_data --database data/ci_large_scale.sqlite --count 100
+        run: | 
+          mkdir -p data
+          python -m backend.generate_large_scale_data --database data/ci_large_scale.sqlite --count 100
 
       - name: Build Frontend Application
         run: npm run build
