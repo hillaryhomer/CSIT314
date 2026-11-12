@@ -82,7 +82,7 @@ src/auth.tsx                         Authentication and company management
 src/projects/                        Designer project management and catalogue
 src/customer/                        Discovery, details and favourites
 src/manager/                         Categories and reports
-tests/test_all.py                    Legacy scenario suite and data-generation test
+tests/test_all.py                    Automated test suite and data-generation test
 TestRunner.py                        Grouped terminal test report
 ```
 
