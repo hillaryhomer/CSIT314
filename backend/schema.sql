@@ -66,9 +66,10 @@ CREATE TABLE IF NOT EXISTS project_categories (
 CREATE UNIQUE INDEX IF NOT EXISTS category_normalized_name ON project_categories(name_key);
 
 INSERT OR IGNORE INTO project_categories(category_id, name, name_key, description) VALUES
-('CAT001', 'Residential', 'residential', 'Homes and apartments'),
-('CAT002', 'Commercial', 'commercial', 'Offices and retail'),
-('CAT003', 'Hospitality', 'hospitality', 'Cafes, restaurants and boutique hotels');
+('CAT-001', 'Modern Residential', 'modern residential', 'Modern home, apartment, and condo design.'),
+('CAT-002', 'Minimalist Living', 'minimalist living', 'Clean, functional minimalist spaces.'),
+('CAT-003', 'Commercial Office', 'commercial office', 'Workplaces, studios, and corporate interiors.'),
+('CAT-004', 'Luxury Hospitality', 'luxury hospitality', 'Boutique hotel lounges, high-end cafe concepts, and luxury wellness retreats.');
 
 -- 6. Interior Design Projects (US20..US29, US30..US31)
 CREATE TABLE IF NOT EXISTS interior_design_projects (

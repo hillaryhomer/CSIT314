@@ -24,8 +24,11 @@ from backend.validation import hash_password, normalize
 
 PASSWORD = "123456"
 
-# Tiny valid transparent PNG for image blob content
-PNG_BYTES = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\rIDATx\x9cc`\x00\x00\x00\x02\x00\x01H\xaf\xa4q\x00\x00\x00\x00IEND\xaeB`\x82'
+# Load real interior photo bytes for realistic presentation
+IMG_DIR = PROJECT_ROOT / "public" / "images"
+def get_photo_bytes(filename: str) -> bytes:
+    p = IMG_DIR / filename
+    return p.read_bytes() if p.exists() else b""
 
 def seed_demo_presentation(database_path: str = "data/atelier_match.sqlite"):
     print(f"Seeding rich presentation demo data into: {database_path}")
@@ -122,17 +125,22 @@ def seed_demo_presentation(database_path: str = "data/atelier_match.sqlite"):
             proj_repo = ProjectRepository(repo)
             projects_data = [
                 ("PROJ-001", "UA-demo-designer", co_1, "CAT-001", "Serene Skyline Penthouse", "Current", "Minimalist",
-                 "A calm, high-floor urban residence featuring custom natural woodwork, concealed storage, and floor-to-ceiling panoramic light."),
+                 "A calm, high-floor urban residence featuring custom natural woodwork, concealed storage, and floor-to-ceiling panoramic light.",
+                 get_photo_bytes("interior-1.jpg")),
                 ("PROJ-002", "UA-demo-designer", co_1, "CAT-002", "Nordic Heritage Loft", "Past", "Scandinavian",
-                 "Award-winning refurbishment of a 1930s heritage shophouse with warm oak textures, exposed rafters, and an indoor courtyard."),
+                 "Award-winning refurbishment of a 1930s heritage shophouse with warm oak textures, exposed rafters, and an indoor courtyard.",
+                 get_photo_bytes("interior-2.jpg")),
                 ("PROJ-003", "UA-demo-designer", co_1, "CAT-004", "Zenith Coastal Villa", "Current", "Contemporary",
-                 "Bespoke tropical retreat blending indoor-outdoor living, travertine stone surfaces, and custom organic furnishings."),
+                 "Bespoke tropical retreat blending indoor-outdoor living, travertine stone surfaces, and custom organic furnishings.",
+                 get_photo_bytes("interior-3.jpg")),
                 ("PROJ-004", "UA-demo-designer-2", co_2, "CAT-003", "Komorebi Tech Hub Studio", "Current", "Industrial",
-                 "Biophilic workspace engineered for cross-disciplinary agile teams, acoustic zoning, and integrated smart lighting."),
+                 "Biophilic workspace engineered for cross-disciplinary agile teams, acoustic zoning, and integrated smart lighting.",
+                 get_photo_bytes("interior-1.jpg")),
                 ("PROJ-005", "UA-demo-designer-2", co_2, "CAT-001", "Monochrome Artisan Residence", "Past", "Modern",
-                 "Bold architectural contrasts with monolithic concrete kitchen islands, fluted glass partitions, and sculptural lighting."),
+                 "Bold architectural contrasts with monolithic concrete kitchen islands, fluted glass partitions, and sculptural lighting.",
+                 get_photo_bytes("interior-2.jpg")),
             ]
-            for p_id, owner_id, c_id, cat_id, title, status, style, desc in projects_data:
+            for p_id, owner_id, c_id, cat_id, title, status, style, desc, img_bytes in projects_data:
                 existing_p = proj_repo.find(p_id, public=False)
                 if not existing_p:
                     created_time = (now - timedelta(days=30)).isoformat()
@@ -147,7 +155,21 @@ def seed_demo_presentation(database_path: str = "data/atelier_match.sqlite"):
                         status=status,
                         created_at=created_time,
                         updated_at=created_time
-                    ), [ProjectImage(f"IMG-{p_id}-01", p_id, 0, "image/png", PNG_BYTES)], new=True)
+                    ), [ProjectImage(f"IMG-{p_id}-01", p_id, 0, "image/jpeg", img_bytes)], new=True)
+                else:
+                    # Ensure real image bytes exist for existing project
+                    proj_repo.save(InteriorDesignProject(
+                        project_id=existing_p["projectId"],
+                        owner_account_id=existing_p["ownerAccountId"],
+                        company_id=existing_p["companyId"],
+                        title=existing_p["title"],
+                        description=existing_p["description"],
+                        category_id=existing_p["categoryId"],
+                        style=existing_p["style"],
+                        status=existing_p["status"],
+                        created_at=existing_p["createdAt"],
+                        updated_at=existing_p["updatedAt"]
+                    ), [ProjectImage(f"IMG-{p_id}-01", p_id, 0, "image/jpeg", img_bytes)], new=False)
 
             # 6. Customer Favourites
             fav_repo = FavouriteRepository(repo)
