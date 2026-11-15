@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button, Details, Empty, Field, Modal, PageHead, SearchBox } from './components';
 import type { Role } from './data';
 
@@ -75,13 +76,99 @@ function Failure({ error }: { error: unknown }) { return error ? <p className="a
 export function LoginForm({ go }: { go: (path: string) => void }) {
   const { accept } = useAuth();
   const [identifier, setIdentifier] = useState(''); const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<unknown>(null); const [busy, setBusy] = useState(false);
   const pending = useRef(false);
-  return <main className="login-page"><div className="login-photo" style={{ backgroundImage: "url('/images/interior-1.jpg')" }}/><div className="login-content"><Button onClick={() => go('/')}>Back to Discover</Button><h1>Welcome back</h1><p>Sign in to your workspace.</p><form className="form-stack" onSubmit={async e => {
-    e.preventDefault(); if (pending.current) return; pending.current = true; setBusy(true); setError(null);
-    try { const s = await api<Session>('/auth/login', 'POST', { identifier, password }); accept(s); setPassword(''); go(roleHome[s.role]); }
-    catch (failure) { setError(failure); } finally { pending.current = false; setBusy(false); }
-  }}><Failure error={error}/><Field label="Username or email"><input required autoComplete="username" value={identifier} maxLength={254} onChange={e => setIdentifier(e.target.value)}/></Field><Field label="Password"><input required type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)}/></Field><Button type="submit" kind="primary" disabled={busy}>{busy ? 'Signing in…' : 'Log In'}</Button></form></div></main>;
+
+  const demoAccounts = [
+    { role: 'User Admin', username: 'admin' },
+    { role: 'Interior Designer', username: 'designer' },
+    { role: 'Customer', username: 'customer' },
+    { role: 'Platform Manager', username: 'manager' },
+    { role: 'Suspended User', username: 'suspended.user' },
+  ];
+
+  return <main className="login-page">
+    <div className="login-photo" style={{ backgroundImage: "url('/images/interior-1.jpg')" }}/>
+    <div className="login-content">
+      <Button onClick={() => go('/')}>Back to Discover</Button>
+      <h1>Welcome back</h1>
+      <p>Sign in to your workspace.</p>
+      <form className="form-stack" onSubmit={async e => {
+        e.preventDefault(); if (pending.current) return; pending.current = true; setBusy(true); setError(null);
+        try { const s = await api<Session>('/auth/login', 'POST', { identifier, password }); accept(s); setPassword(''); go(roleHome[s.role]); }
+        catch (failure) { setError(failure); } finally { pending.current = false; setBusy(false); }
+      }}>
+        <Failure error={error}/>
+        <Field label="Username or email">
+          <input required autoComplete="username" value={identifier} maxLength={254} placeholder="e.g. admin, designer, customer" onChange={e => setIdentifier(e.target.value)}/>
+        </Field>
+        <Field label="Password">
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              required
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              value={password}
+              placeholder="Enter password"
+              style={{ width: '100%', paddingRight: '40px' }}
+              onChange={e => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              style={{
+                position: 'absolute',
+                right: '8px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#786e62',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '4px'
+              }}
+              title={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+            </button>
+          </div>
+        </Field>
+        <Button type="submit" kind="primary" disabled={busy}>{busy ? 'Signing in…' : 'Log In'}</Button>
+      </form>
+
+      <div className="login-preview" style={{ marginTop: '28px', padding: '16px', background: '#f5efe6', borderRadius: '8px' }}>
+        <span className="section-eyebrow" style={{ fontWeight: 700, fontSize: '11px', color: '#6e5639' }}>Demo Accounts (Password: 123456)</span>
+        <p style={{ margin: '4px 0 10px', fontSize: '11px', color: 'var(--muted)' }}>
+          Click any role below to autofill credentials:
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px' }}>
+          {demoAccounts.map(account => (
+            <button
+              key={account.username}
+              type="button"
+              onClick={() => { setIdentifier(account.username); setPassword('123456'); }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                padding: '6px 10px',
+                background: '#ffffff',
+                border: '1px solid #dcd4c8',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 700 }}>{account.role}</span>
+              <span style={{ fontSize: '10px', color: '#786e62' }}>{account.username}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </main>;
 }
 
 export function LogoutForm({ go }: { go: (path: string) => void }) {

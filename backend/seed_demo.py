@@ -60,6 +60,7 @@ def seed_demo_presentation(database_path: str = "data/atelier_match.sqlite"):
 
             # 2. User Accounts
             accounts_data = [
+                ("UA-demo-admin", "admin", "admin@example.com", p_admin, "Active"),
                 ("dev-admin", "dev.admin", "dev.admin@example.test", p_admin, "Active"),
                 ("UA-demo-designer", "designer", "designer@example.com", p_designer, "Active"),
                 ("UA-demo-designer-2", "designer.clara", "clara@forma-studio.test", p_designer, "Active"),
