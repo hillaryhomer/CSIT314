@@ -25,6 +25,9 @@ from backend.models import AppError
 from backend.validation import check_object
 
 
+# ---------------------------------------------------------------------------
+# US20–US29: INTERIOR DESIGNER PROJECTS (Current & Past Project Routes)
+# ---------------------------------------------------------------------------
 def register_project_routes(app, repository):
     controls = {
         'current': (ProjectController, ProjectController, ProjectController, ProjectController, SearchIDPC),
@@ -68,6 +71,9 @@ def register_project_routes(app, repository):
         return response
 
 
+# ---------------------------------------------------------------------------
+# US30–US36: CUSTOMER DISCOVERY & FAVOURITES ROUTES
+# ---------------------------------------------------------------------------
 def register_customer_routes(app, repository):
     def check_query(allowed):
         if set(request.args) - allowed:
@@ -103,6 +109,9 @@ def register_customer_routes(app, repository):
         return jsonify(ViewFavouriteListController(repository(), g.actor_id).execute())
 
 
+# ---------------------------------------------------------------------------
+# US37–US38: DESIGNER ANALYTICS & ACTIVITY LOGGING ROUTES
+# ---------------------------------------------------------------------------
 def register_activity_routes(app, repository):
     def query():
         if request.args:
@@ -124,6 +133,9 @@ def register_activity_routes(app, repository):
         return jsonify(RecordIDPViewController(repository(), g.actor_id).execute(project_id, request.get_json()))
 
 
+# ---------------------------------------------------------------------------
+# US39–US46: PLATFORM MANAGER CATEGORIES & PERIODIC REPORTS ROUTES
+# ---------------------------------------------------------------------------
 def register_manager_routes(app, repository):
     def query(allowed=()):
         if set(request.args) - set(allowed):

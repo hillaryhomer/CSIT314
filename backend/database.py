@@ -252,6 +252,7 @@ class ProjectRepository:
     def find(self, project_id, owner=None, status=None, public=False):
         clauses, args = ['p.project_id=?'], [project_id]
         if owner is not None:
+            # US21, US23, US26, US28: Restrict single project retrieval to project owner
             clauses.append('p.owner_account_id=?'); args.append(owner)
         if status is not None:
             clauses.append('p.status=?'); args.append(status)
@@ -263,10 +264,14 @@ class ProjectRepository:
         clauses, args = ['1=1'], []
         for column, value in [('p.status', status), ('p.owner_account_id', owner), ('p.category_id', category_id or None)]:
             if value is not None:
+                # Feature: Project Ownership Isolation (US20–US29)
+                # Ensures each designer only accesses projects belonging to their own account
                 clauses.append(column + '=?'); args.append(value)
         if public:
             clauses.append(self.VISIBLE)
         if favourite_customer is not None:
+            # Feature: Private Favourites Shortlist (US32–US34)
+            # Restricts results to projects bookmarked by the authenticated customer
             clauses.append('EXISTS (SELECT 1 FROM favourites f WHERE f.project_id=p.project_id AND f.customer_account_id=?)')
             args.append(favourite_customer)
         rows = self.connection.execute(self.SELECT + ' WHERE ' + ' AND '.join(clauses) + ' ORDER BY p.created_at DESC, p.project_id', args).fetchall()

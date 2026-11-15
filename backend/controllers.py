@@ -347,17 +347,25 @@ class SearchCIC(CompanyController):
 # ---------------------------------------------------------------------------
 
 class ProjectController(Controller):
+    """Base controller for interior design projects.
+    Enforces role-based permissions and ownership isolation so designers
+    can only manage their own portfolio entries.
+    """
     def designer_owner(self) -> str:
+        # Feature: Designer Role & Permission Check (RBAC - US18, US20–US29)
+        # Confirms user is an active Interior Designer with 'projects:manage' permission.
         account, profile = effective_access(self.repository, self.actor_id)
         if profile.role != "designer" or "projects:manage" not in profile.permissions:
             raise AppError("FORBIDDEN", "Designer project permissions required.")
         return account.account_id
 
     def list(self, status: str, query: str = ""):
+        # Feature: List Designer Projects (US21, US24, US26, US29)
         owner = self.designer_owner()
         return ProjectRepository(self.repository).search(status=status, owner=owner, query=query)
 
     def view(self, project_id: str):
+        # Feature: View Project Details (US21, US26)
         owner = self.designer_owner()
         project = ProjectRepository(self.repository).find(project_id, owner=owner)
         if not project:
@@ -556,6 +564,7 @@ class ViewIDPController(CustomerCatalogController):
         return self.view_project(project_id)
 
 class AddFavouriteController(CustomerCatalogController):
+    """US32: Customer adds an interior design project to their private favourites shortlist."""
     def execute(self, data: dict):
         check_object(data, {"projectId"})
         project_id = clean(data.get("projectId"))
@@ -564,10 +573,12 @@ class AddFavouriteController(CustomerCatalogController):
         return self.add_favourite(project_id)
 
 class ViewFavouriteListController(CustomerCatalogController):
+    """US33: Customer views their private favourites shortlist."""
     def execute(self):
         return self.list_favourites()
 
 class SearchFavouriteListController(CustomerCatalogController):
+    """US34: Customer searches within their private favourites shortlist by keyword."""
     def execute(self, query: str = ""):
         return self.list_favourites(query)
 
