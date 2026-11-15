@@ -46,6 +46,7 @@ def connect_database(filename: str) -> sqlite3.Connection:
 
 def initialize_database(filename: str) -> None:
     """Initialize the database tables and reporting triggers."""
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
     connection = connect_database(filename)
     try:
         version = connection.execute("PRAGMA user_version").fetchone()[0]

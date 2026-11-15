@@ -21,6 +21,16 @@ PASSWORD = "testpassword123"
 ADMIN_PERMS = ["profiles:read", "profiles:write", "accounts:read", "accounts:write"]
 
 
+class DatabaseInitializationTest(unittest.TestCase):
+    def test_initialize_database_creates_missing_parent_directory(self):
+        with tempfile.TemporaryDirectory(prefix="csit314-db-") as directory:
+            filename = Path(directory) / "data" / "nested" / "test.sqlite"
+
+            initialize_database(str(filename))
+
+            self.assertTrue(filename.is_file())
+
+
 class IdpTestCase(unittest.TestCase):
     """Shared fixtures for legacy scenarios; placeholder assertions do not exercise features."""
     password_hash = hash_password(PASSWORD)
