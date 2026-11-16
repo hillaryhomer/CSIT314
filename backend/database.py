@@ -77,6 +77,7 @@ class Repository:
     def __init__(self, connection: sqlite3.Connection):
         self.connection = connection
 
+    # Shared infrastructure for US01-US48: commit related writes together or roll them back on failure.
     @contextlib.contextmanager
     def transaction(self):
         cursor = self.connection.cursor()
@@ -88,6 +89,7 @@ class Repository:
             self.connection.rollback()
             raise
 
+    # US05 - Search User Profiles: load profiles and filter them by name.
     def list_profiles(self, query: str = "") -> list[UserProfile]:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_profiles ORDER BY name_key, profile_id;")
@@ -95,6 +97,7 @@ class Repository:
         return [p for r in cursor.fetchall() if (p := read_profile(r)) is not None
                 and (not keyword or keyword in p.name.casefold())]
 
+    # US02 - View User Profile; also retrieve the profile used by access checks.
     def profile_with_id(self, profile_id: str) -> UserProfile | None:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_profiles WHERE profile_id = ?;", (profile_id,))
@@ -102,11 +105,13 @@ class Repository:
 
     find_profile = profile_with_id
 
+    # US01, US03 - Look up profile names to support duplicate-name validation.
     def profile_with_name(self, name: str) -> UserProfile | None:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_profiles WHERE name_key = ?;", (normalize(name),))
         return read_profile(cursor.fetchone())
 
+    # US01 - Create User Profile: persist its role, permissions, and status.
     def create_profile(self, profile: UserProfile) -> None:
         cursor = self.connection.cursor()
         cursor.execute(
@@ -116,6 +121,7 @@ class Repository:
              json.dumps(profile.permissions), profile.status),
         )
 
+    # US03, US04 - Persist profile changes, including suspension status.
     def update_profile(self, profile: UserProfile) -> None:
         cursor = self.connection.cursor()
         cursor.execute(
@@ -126,11 +132,13 @@ class Repository:
              profile.status, profile.profile_id),
         )
 
+    # US10 - Search User Accounts: load accounts for controller-side keyword filtering.
     def list_accounts(self) -> list[UserAccount]:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_accounts ORDER BY username_key, account_id;")
         return [a for r in cursor.fetchall() if (a := read_account(r)) is not None]
 
+    # US07 - View User Account; also resolve accounts for authenticated access.
     def account_with_id(self, account_id: str) -> UserAccount | None:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_accounts WHERE account_id = ?;", (account_id,))
@@ -138,16 +146,19 @@ class Repository:
 
     find_account = account_with_id
 
+    # US06, US08 - Check username uniqueness; US11, US18, US35, US47 - Find the login account.
     def account_with_username(self, username: str) -> UserAccount | None:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_accounts WHERE username_key = ?;", (normalize(username),))
         return read_account(cursor.fetchone())
 
+    # US06, US08 - Check email uniqueness; US11, US18, US35, US47 - Support email login.
     def account_with_email(self, email: str) -> UserAccount | None:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM user_accounts WHERE email_key = ?;", (normalize(email),))
         return read_account(cursor.fetchone())
 
+    # US06 - Create User Account: store the password hash and assigned profile.
     def create_account(self, account: UserAccount) -> None:
         cursor = self.connection.cursor()
         cursor.execute(
@@ -159,6 +170,7 @@ class Repository:
              account.profile_id, account.status),
         )
 
+    # US08, US09 - Persist account details and status; session revocation is handled separately.
     def update_account(self, account: UserAccount) -> None:
         cursor = self.connection.cursor()
         cursor.execute(
@@ -177,6 +189,7 @@ class CompanyRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
+    # US11, US18, US35, US47 - Resolve an unexpired session for authenticated requests.
     def session(self, token):
         if not token:
             return None
@@ -185,30 +198,37 @@ class CompanyRepository:
             (token_hash(token), int(time.time())),
         ).fetchone()
 
+    # US12, US19, US36, US48 - Log out by deleting the stored session.
     def remove_session(self, token):
         self.connection.execute('DELETE FROM auth_sessions WHERE token_hash=?', (token_hash(token),))
 
+    # US11, US18, US35, US47 - Store a hashed session token with an eight-hour expiry.
     def create_session(self, token, account_id, csrf):
         self.connection.execute('DELETE FROM auth_sessions WHERE expires_at<=?', (int(time.time()),))
         self.connection.execute('INSERT INTO auth_sessions VALUES (?, ?, ?, ?)',
                                 (token_hash(token), account_id, csrf, int(time.time()) + 28800))
 
+    # US09 - Suspend User Account and revoke all of its existing sessions.
     def suspend_account(self, account_id):
         self.connection.execute("UPDATE user_accounts SET status='Suspended' WHERE account_id=?", (account_id,))
         self.connection.execute('DELETE FROM auth_sessions WHERE account_id=?', (account_id,))
 
+    # US14, US17 - Retrieve the designer-owned company for viewing or controller-side searching.
     def company(self, owner_id):
         row = self.connection.execute('SELECT * FROM companies WHERE owner_id=?', (owner_id,)).fetchone()
         return CompanyInformation(**dict(row)).to_dict() if row else None
 
+    # US13 - Create Company Profile: associate company information with its designer.
     def create_company(self, company_id, owner_id, values):
         self.connection.execute('INSERT INTO companies VALUES (?, ?, ?, ?, ?, ?, ?)',
             (company_id, owner_id, values['name'], values['regNumber'], values['address'], values['contact'], values['description']))
 
+    # US15 - Update Company Information using both company ID and owner ID.
     def update_company(self, company_id, owner_id, values):
         self.connection.execute('UPDATE companies SET name=?, reg_number=?, address=?, contact=?, description=? WHERE company_id=? AND owner_id=?',
             (values['name'], values['regNumber'], values['address'], values['contact'], values['description'], company_id, owner_id))
 
+    # US16 - Delete Company Information belonging to the specified designer.
     def delete_company(self, company_id, owner_id):
         self.connection.execute('DELETE FROM companies WHERE company_id=? AND owner_id=?', (company_id, owner_id))
 
@@ -218,17 +238,21 @@ class ProjectRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
+    # US20, US22, US25, US27, US30 - Supply category choices for project forms and discovery filters.
     def categories(self):
         return [dict(categoryId=r['category_id'], name=r['name'], description=r['description'], status=r['status'])
                 for r in self.connection.execute('SELECT * FROM project_categories ORDER BY name')]
 
+    # US20, US22, US25, US27 - Retrieve category status for controller-side project validation.
     def category(self, category_id):
         return self.connection.execute('SELECT * FROM project_categories WHERE category_id=?', (category_id,)).fetchone()
 
+    # US20, US22, US25, US27 - Link a project to its designer company when one exists.
     def company_id(self, owner):
         row = self.connection.execute('SELECT company_id FROM companies WHERE owner_id=?', (owner,)).fetchone()
         return row[0] if row else None
 
+    # US21, US26, US30, US31, US33, US34 - Build project results with category, designer, company, and image URLs.
     def serialize(self, row):
         if row is None:
             return None
@@ -249,6 +273,7 @@ class ProjectRepository:
                 LEFT JOIN companies co ON co.company_id=p.company_id'''
     VISIBLE = "a.status='Active' AND up.status='Active' AND up.role='designer' AND EXISTS (SELECT 1 FROM json_each(up.permissions_json) permission WHERE permission.value='projects:manage')"
 
+    # US21, US26, US31 - Retrieve project details; owner/public filters also support update, delete, and favourite checks.
     def find(self, project_id, owner=None, status=None, public=False):
         clauses, args = ['p.project_id=?'], [project_id]
         if owner is not None:
@@ -260,6 +285,7 @@ class ProjectRepository:
             clauses.append(self.VISIBLE)
         return self.serialize(self.connection.execute(self.SELECT + ' WHERE ' + ' AND '.join(clauses), args).fetchone())
 
+    # US24, US29, US30, US33, US34 - Search designer projects, the public catalog, or a customer favourite list.
     def search(self, status=None, owner=None, query='', category_id='', public=False, style='', favourite_customer=None):
         clauses, args = ['1=1'], []
         for column, value in [('p.status', status), ('p.owner_account_id', owner), ('p.category_id', category_id or None)]:
@@ -281,6 +307,7 @@ class ProjectRepository:
                 if (not selected_style or normalize(r['style']) == selected_style)
                 and keyword in normalize(' '.join(r[k] or '' for k in ('title','description','style','category_name','company_name')))]
 
+    # US30 - Search Catalog IDPs: supply distinct styles from publicly visible projects.
     def styles(self):
         rows = self.connection.execute(self.SELECT + ' WHERE ' + self.VISIBLE + ' ORDER BY p.style,p.project_id').fetchall()
         unique = {}
@@ -288,6 +315,7 @@ class ProjectRepository:
             unique.setdefault(normalize(r['style']), r['style'])
         return sorted(unique.values())
 
+    # US20, US25 - Create projects; US22, US27 - Update projects and replace their stored images.
     def save(self, project, images, new=False):
         if new:
             self.connection.execute('''INSERT INTO interior_design_projects
@@ -305,9 +333,11 @@ class ProjectRepository:
             self.connection.execute('INSERT INTO project_images VALUES (?,?,?,?,?)',
                 (image.image_id, project.project_id, image.position, image.mime_type, image.content))
 
+    # US23, US28 - Delete a Current or Past project after controller ownership checks.
     def delete(self, project_id):
         self.connection.execute('DELETE FROM interior_design_projects WHERE project_id=?', (project_id,))
 
+    # US21, US26, US31 - Retrieve image bytes and MIME type for project displays.
     def image(self, image_id):
         row = self.connection.execute('SELECT mime_type, content FROM project_images WHERE image_id=?', (image_id,)).fetchone()
         return (row['mime_type'], row['content']) if row else None
@@ -323,20 +353,24 @@ class CategoryRepository:
         return IDPCategory(row['category_id'], row['name'], row['description'], row['status'],
                            row['created_at'], row['updated_at'], row['deleted_at']) if row else None
 
+    # US40 - View IDP Category: retrieve a category that has not been soft-deleted.
     def find(self, category_id):
         return self.entity(self.connection.execute(
             'SELECT * FROM project_categories WHERE category_id=? AND deleted_at IS NULL', (category_id,)).fetchone())
 
+    # US43 - Search IDP Categories by normalized name or description.
     def search(self, query):
         return [self.entity(row).to_dict() for row in self.connection.execute('''
             SELECT * FROM project_categories WHERE deleted_at IS NULL
             AND instr(normalize(name || ' ' || description),?)>0 ORDER BY name_key,category_id
         ''', (normalize(query),))]
 
+    # US39, US41 - Support duplicate category-name checks before creation or update.
     def duplicate(self, name, excluding=None):
         return self.connection.execute('SELECT 1 FROM project_categories WHERE name_key=? AND category_id<>?',
                                        (normalize(name), excluding or '')).fetchone() is not None
 
+    # US39, US41, US42 - Create, update, or soft-delete a category by persisting deleted_at.
     def save(self, category, new=False):
         if new:
             self.connection.execute('''INSERT INTO project_categories
@@ -355,10 +389,12 @@ class FavouriteRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
+    # US30-US34 - Retrieve customer-owned favourite records for saved markers and shortlist metadata.
     def list_for_customer(self, customer_id):
         return [Favourite(**dict(row)) for row in self.connection.execute(
             'SELECT * FROM favourites WHERE customer_account_id=? ORDER BY created_at DESC,project_id', (customer_id,))]
 
+    # US32 - Add IDP to Favourite List: ignore repeated saves of the same customer/project pair.
     def add(self, favourite):
         cursor = self.connection.execute(
             '''INSERT INTO favourites(customer_account_id,project_id,created_at) VALUES (?,?,?)
@@ -366,6 +402,7 @@ class FavouriteRepository:
             (favourite.customer_account_id, favourite.project_id, favourite.created_at))
         return cursor.rowcount == 1
 
+    # US31, US32 - Check whether a project is already saved by this customer.
     def exists(self, customer_id, project_id):
         row = self.connection.execute(
             'SELECT 1 FROM favourites WHERE customer_account_id=? AND project_id=?',
@@ -373,10 +410,12 @@ class FavouriteRepository:
         ).fetchone()
         return row is not None
 
+    # US32 - Retrieve the saved favourite and its original creation timestamp.
     def find(self, customer_id, project_id):
         row = self.connection.execute('SELECT * FROM favourites WHERE customer_account_id=? AND project_id=?', (customer_id, project_id)).fetchone()
         return Favourite(**dict(row)) if row else None
 
+    # US38 - View Project Shortlist Counts: count favourites for each requested project.
     def count_by_project(self, project_ids):
         if not project_ids:
             return {}
@@ -394,20 +433,23 @@ class ProjectActivityAdapter:
     view_tracking_available = True
     def __init__(self, repository):
         self.connection = repository.connection
+    # US38 - Provide the favourite count for a single project through the activity adapter.
     def shortlist_count(self, project_id):
         return self.connection.execute('SELECT COUNT(*) FROM favourites WHERE project_id=?', (project_id,)).fetchone()[0]
 
 
-# 6. Activity Analytics Repository (US31, US37)
+# 6. Activity Analytics Repository (US31, US37, US38)
 class ActivityRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
+    # US31, US37 - Record project view events once per project/event ID for view analytics.
     def record(self, event):
         return self.connection.execute(
             'INSERT INTO project_views VALUES (?,?,?) ON CONFLICT(project_id,event_id) DO NOTHING',
             (event.project_id, event.event_id, event.occurred_at)).rowcount == 1
 
+    # US37, US38 - Return view and shortlist counts restricted to the designer-owned projects.
     def counts(self, owner, project_id=None):
         return [dict(row) for row in self.connection.execute('''
             SELECT p.project_id AS projectId,p.title,p.status,
@@ -423,6 +465,7 @@ class ReportRepository:
     def __init__(self, repository):
         self.connection = repository.connection
 
+    # US44-US46 - Count report events within the requested time interval and return retention coverage.
     def aggregate(self, start, end):
         rows = self.connection.execute('''SELECT c.retained_since,e.kind,COUNT(e.event_key) AS total
             FROM report_coverage c LEFT JOIN report_events e ON e.occurred_at>=? AND e.occurred_at<?
@@ -434,6 +477,7 @@ class ReportService:
     def __init__(self, store):
         self.store = store
 
+    # US44 - Daily Report; US45 - Weekly Report; US46 - Monthly Report: build metrics for the calendar period.
     def generate(self, kind, value, now=None):
         period = ReportPeriod.parse(kind, value)
         now = now or datetime.now(timezone.utc)
